@@ -696,6 +696,7 @@ export default function InventorySuppliesPhaseTwo({
                 <th className="px-3 py-2 text-start">{isAr ? "حد الطلب الأدنى" : "Min. Order Point"}</th>
                 <th className="px-3 py-2 text-start">{isAr ? "مستوى المخزون" : "Stock Level"}</th>
                 <th className="px-3 py-2 text-start">{isAr ? "الكمية المتاحة" : "Available Qty"}</th>
+                <th className="px-3 py-2 text-start">{isAr ? "الفرق عن حد الطلب" : "Diff vs. Min"}</th>
                 {role === "clinic_owner" && (
                   <th className="px-3 py-2 text-start">{isAr ? "القيمة" : "Value"}</th>
                 )}
@@ -710,6 +711,7 @@ export default function InventorySuppliesPhaseTwo({
             <tbody>
               {filteredItems.map((item) => {
                 const fillPct = Math.min(100, Math.round((item.quantity / 25) * 100));
+                const minDiff = item.quantity - item.minThreshold;
                 return (
                   <tr
                     key={item.id}
@@ -792,6 +794,22 @@ export default function InventorySuppliesPhaseTwo({
                       {item.quantity}{" "}
                       <span className="text-[11px] font-normal text-slate-400">
                         {isAr ? item.unitAr : item.unitEn}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 tabular-nums">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-black ${
+                          minDiff > 0
+                            ? "bg-emerald-50 text-emerald-700"
+                            : minDiff === 0
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-rose-50 text-rose-700"
+                        }`}
+                      >
+                        {minDiff > 0 ? `+${minDiff}` : minDiff}{" "}
+                        <span className="font-normal opacity-80">
+                          {isAr ? item.unitAr : item.unitEn}
+                        </span>
                       </span>
                     </td>
                     {role === "clinic_owner" && (
