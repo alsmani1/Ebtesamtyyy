@@ -174,6 +174,9 @@ function BookingFlowContent() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const [confirmedSlot, setConfirmedSlot] = useState<TimeSlot | null>(null);
+  const stepRef = React.useRef(step);
+  stepRef.current = step;
 
   const selectedBranchObj =
     CLINIC_BRANCHES.find((b) => b.code === branchCode) || CLINIC_BRANCHES[0];
@@ -209,18 +212,20 @@ function BookingFlowContent() {
         available: slot.available && !taken.has(slot.label),
       }));
       setSlots(resolved);
-      setSelectedSlot((prev) => {
-        const keep = resolved.find((slot) => slot.label === prev.label && slot.available);
-        return (
-          keep ||
-          resolved.find((slot) => slot.available) || {
-            time: '',
-            label: '',
-            window: 'MORNING',
-            available: false,
-          }
-        );
-      });
+      if (stepRef.current < 7) {
+        setSelectedSlot((prev) => {
+          const keep = resolved.find((slot) => slot.label === prev.label && slot.available);
+          return (
+            keep ||
+            resolved.find((slot) => slot.available) || {
+              time: '',
+              label: '',
+              window: 'MORNING',
+              available: false,
+            }
+          );
+        });
+      }
       setLoadingSlots(false);
     };
 
@@ -272,6 +277,8 @@ function BookingFlowContent() {
       setStep(4);
       return;
     }
+    const bookedSlot = selectedSlot;
+    setConfirmedSlot(bookedSlot);
     setStep(7);
     setSubmitting(true);
     try {
@@ -323,8 +330,9 @@ function BookingFlowContent() {
   };
 
   const handleDownloadIcs = () => {
+    const slotForIcs = confirmedSlot || selectedSlot;
     const dateClean = selectedDate.replace(/-/g, '');
-    const [hh, mm] = selectedSlot.time.split(':');
+    const [hh, mm] = slotForIcs.time.split(':');
     const startStr = `${dateClean}T${hh}${mm}00`;
     const endHour = String(Number(hh) + 1).padStart(2, '0');
     const endStr = `${dateClean}T${endHour}${mm}00`;
@@ -1019,7 +1027,7 @@ function BookingFlowContent() {
                   {localizedText(isAr ? 'ar' : 'en', 'text_02bbcbe755')}
                 </span>
                 <strong className="text-sm text-[#102A5E]">
-                  {selectedDate} • <TranslatedText text={String(selectedSlot.label)}/>
+                  {selectedDate} • <TranslatedText text={String((confirmedSlot || selectedSlot).label)}/>
                 </strong>
               </div>
             </div>
