@@ -281,10 +281,27 @@ function saturdayStart(date: Date): Date {
 
 export const CALENDAR_ITEMS_KEY = 'ebtesamty_calendar_items_v1';
 
+const FUTURE_DISALLOWED_STATUSES: AppointmentStatus[] = [
+  'ARRIVED',
+  'IN_CHAIR',
+  'COMPLETED',
+  'NO_SHOW',
+];
+
+function normalizeFutureCalendarItem(
+  item: CalendarSlotItem,
+  todayIso = clinicTodayISO()
+): CalendarSlotItem {
+  if (calendarItemDate(item) > todayIso && FUTURE_DISALLOWED_STATUSES.includes(item.status)) {
+    return { ...item, status: 'CONFIRMED' };
+  }
+  return item;
+}
+
 const INITIAL_CALENDAR_STATE: CalendarSlotItem[] = [
   ...INITIAL_CALENDAR_ITEMS.map((it) => ({ ...it, weekOffset: 0 })),
   ...[-2, -1, 1, 2, 3].flatMap((offset) => extraWeekItems(offset)),
-];
+].map((it) => normalizeFutureCalendarItem(it));
 
 const isoFromDate = (d: Date): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -349,9 +366,11 @@ export function calendarItemToAppointment(
  */
 export function publishCalendarAppointmentsToStore(source?: CalendarSlotItem[]): void {
   if (typeof window === 'undefined') return;
-  const rows =
+  const rawRows =
     source ?? readLocalJson<CalendarSlotItem[]>(CALENDAR_ITEMS_KEY, INITIAL_CALENDAR_STATE);
-  if (!Array.isArray(rows)) return;
+  if (!Array.isArray(rawRows)) return;
+  const todayIso = clinicTodayISO();
+  const rows = rawRows.map((row) => normalizeFutureCalendarItem(row, todayIso));
   const stored = listAppointments();
   const calendarById = new Map(
     rows
@@ -580,6 +599,7 @@ export function SmartClinicCalendar({
       };
 
       setItems((prev) => {
+        const todayIso = clinicTodayISO();
         const visible = stored.filter((p) => p.status !== 'CANCELLED' && !p.isPast);
         const visibleById = new Map(visible.map((p) => [p.id, p]));
         const hiddenIds = new Set(
@@ -589,12 +609,15 @@ export function SmartClinicCalendar({
           .filter((item) => !hiddenIds.has(item.id))
           .map((item) => {
             const record = visibleById.get(item.id);
-            return record ? toCalendarItem(record, item) : item;
+            return normalizeFutureCalendarItem(
+              record ? toCalendarItem(record, item) : item,
+              todayIso
+            );
           });
         const keptIds = new Set(kept.map((item) => item.id));
         const additions = visible
           .filter((p) => !keptIds.has(p.id))
-          .map((p) => toCalendarItem(p));
+          .map((p) => normalizeFutureCalendarItem(toCalendarItem(p), todayIso));
         return [...additions, ...kept];
       });
     };
@@ -1852,13 +1875,19 @@ export function SmartClinicCalendar({
                 {STATUS_ACTION_ORDER.map((status) => {
                   const active = managingAppt.status === status;
                   const isDanger = status === 'CANCELLED' || status === 'NO_SHOW';
+                  const isFutureBlocked =
+                    calendarItemDate(managingAppt) > clinicTodayISO() &&
+                    FUTURE_DISALLOWED_STATUSES.includes(status);
                   return (
                     <button
                       key={status}
                       type="button"
+                      disabled={isFutureBlocked}
                       onClick={() => applyAppointmentStatus(managingAppt, status)}
                       className={`rounded-xl border px-3 py-2 text-xs font-extrabold transition ${
-                        active
+                        isFutureBlocked
+                          ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 opacity-60'
+                          : active
                           ? 'border-[#0B2528] bg-[#0B2528] text-white'
                           : isDanger
                           ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
