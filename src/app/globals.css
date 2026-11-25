@@ -1,0 +1,613 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Josefin Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/josefin-0.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Josefin Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/josefin-1.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Josefin Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/josefin-2.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Josefin Sans';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/josefin-3.ttf') format('truetype');
+}
+
+/* ============================================================================
+   EBTISAMA DENTAL CLINICS — GLOBAL DESIGN TOKENS
+   1. Hospitality & Executive Mode (Default):
+      - Canvas: Warm Alabaster Silk (#F7F6F2)
+      - Bento Cards: Pure White (#FFFFFF), 24px radius, subtle emerald shadow
+      - Primary Surface: Deep Midnight Emerald (#0B2528)
+      - Accent: Champagne Gold (#C8A96E)
+   2. Chairside Clinical Dark Mode (/dentist/*):
+      - Canvas: Deep Obsidian Slate (#090D16)
+      - Cards: Frosted Dark Glass (rgba(15, 23, 42, 0.82))
+      - Accent: Luminous Cyan-Teal (#14B8A6) & Warm Amber (#F59E0B)
+   ============================================================================ */
+
+:root,
+[data-theme="hospitality"] {
+  --eb-canvas: #F7F6F2;
+  --eb-card: #FFFFFF;
+  --eb-card-border: rgba(226, 232, 240, 0.75);
+  --eb-card-shadow: 0 2px 12px rgba(11, 37, 40, 0.04);
+  --eb-card-shadow-hover: 0 12px 28px rgba(11, 37, 40, 0.08);
+
+  --eb-emerald: #0B2528;
+  --eb-emerald-hover: #13393E;
+  --eb-emerald-soft: #E6F0EE;
+  --eb-gold: #C8A96E;
+  --eb-gold-hover: #B59457;
+  --eb-gold-soft: #F9F5EB;
+  --eb-cyan: #14B8A6;
+
+  /* Backwards-compatible aliases mapped to the new palette */
+  --eb-blue: #0B2528;
+  --eb-blue-hover: #13393E;
+  --eb-navy: #0B2528;
+  --eb-teal: #0B2528;
+  --eb-teal-hover: #13393E;
+  --eb-midnight: #0B2528;
+  --eb-ivory: #F7F6F2;
+  --eb-mint: #E6F0EE;
+  --eb-white: #FFFFFF;
+  --eb-orange: #C8A96E;
+  --eb-orange-hover: #B59457;
+  --eb-terracotta: #C8A96E;
+  --eb-terracotta-hover: #B59457;
+  --eb-bone: #F7F6F2;
+  --eb-ink: #0B2528;
+  --eb-muted: #5C6B6E;
+  --eb-line: #E2E8F0;
+
+  --semantic-critical: #E11D48;
+  --semantic-critical-bg: #FFF1F2;
+  --semantic-critical-border: #FECDD3;
+  --semantic-warning: #D97706;
+  --semantic-warning-bg: #FFFBEB;
+  --semantic-warning-border: #FDE68A;
+  --semantic-verified: #0D9488;
+  --semantic-verified-bg: #F0FDFA;
+  --semantic-verified-border: #99F6E4;
+  --semantic-action: #0B2528;
+  --semantic-action-bg: #F0F5F4;
+  --semantic-action-border: #CBD5E1;
+  --semantic-proposed: #7C3AED;
+  --semantic-proposed-bg: #F5F3FF;
+  --semantic-proposed-border: #DDD6FE;
+  --semantic-neutral: #475569;
+  --semantic-neutral-bg: #F8FAFC;
+  --semantic-neutral-border: #E2E8F0;
+
+  --surface: #FFFFFF;
+  --surface-muted: #F7F6F2;
+  --surface-subtle: #F0EFEA;
+  --surface-card: #FFFFFF;
+  --border-subtle: #ECEAE2;
+  --border-default: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --font-sans: 'Plus Jakarta Sans', 'Josefin Sans', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+  --font-serif: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', sans-serif;
+}
+
+[data-theme="clinical-dark"] {
+  --eb-canvas: #090D16;
+  --eb-card: rgba(15, 23, 42, 0.82);
+  --eb-card-border: rgba(30, 41, 59, 0.9);
+  --eb-card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --eb-card-shadow-hover: 0 14px 36px rgba(20, 184, 166, 0.14);
+
+  --eb-ink: #F8FAFC;
+  --eb-muted: #94A3B8;
+  --eb-line: #1E293B;
+  --surface: #0F172A;
+  --surface-muted: #090D16;
+  --surface-subtle: #1E293B;
+  --surface-card: rgba(15, 23, 42, 0.82);
+}
+
+html,
+body,
+#root,
+#__next {
+  color: var(--eb-ink);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"],
+html[lang="ar"] body {
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
+  text-align: right;
+  direction: rtl;
+}
+
+input[type="tel"],
+input[type="email"],
+input[type="date"],
+input[type="time"],
+.identifier {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Tabular numerals for financial figures, KPIs, and timers */
+.tabular-nums,
+table,
+td,
+dd,
+strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom sleek scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(11, 37, 40, 0.18);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 37, 40, 0.32);
+}
+
+/* Accessible Focus Rings */
+*:focus-visible {
+  outline: 2px solid var(--eb-gold);
+  outline-offset: 2px;
+}
+
+/* Typography Hierarchy */
+h1 {
+  font-size: clamp(1.65rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--eb-ink);
+}
+h2 {
+  font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--eb-ink);
+}
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+[dir="rtl"] :is(h1, h2, h3) {
+  letter-spacing: 0;
+}
+
+/* ============================================================================
+   GLOBAL PRIMITIVE CLASSES (Inherited across all pages & sub-pages)
+   ============================================================================ */
+
+/* Bento Cards */
+.surface-card,
+.bento-card {
+  background: var(--eb-card);
+  border: 1px solid var(--eb-card-border);
+  border-radius: 1.5rem; /* 24px rounded-3xl */
+  padding: 1.5rem; /* p-6 */
+  box-shadow: var(--eb-card-shadow);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.24s ease;
+  min-width: 0;
+}
+
+@media (hover: hover) {
+  .surface-card:hover,
+  .bento-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(200, 169, 110, 0.42);
+    box-shadow: var(--eb-card-shadow-hover);
+  }
+}
+
+[data-theme="clinical-dark"] .surface-card,
+[data-theme="clinical-dark"] .bento-card {
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(51, 65, 85, 0.75);
+  color: #F8FAFC;
+  backdrop-filter: blur(16px);
+}
+
+/* Tactile Pill Buttons */
+.primary-button,
+.secondary-button,
+.v2-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 9999px; /* rounded-full */
+  font-weight: 700;
+  font-size: 0.8125rem;
+  min-height: 42px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.primary-button {
+  background: #0B2528;
+  color: #FFFFFF !important;
+  border: 1px solid #0B2528;
+  box-shadow: 0 4px 14px rgba(11, 37, 40, 0.16);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: #13393E;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(11, 37, 40, 0.22);
+}
+
+.primary-button:active:not(:disabled),
+.secondary-button:active:not(:disabled),
+button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+[data-theme="clinical-dark"] .primary-button {
+  background: #14B8A6;
+  color: #090D16 !important;
+  border-color: #14B8A6;
+  box-shadow: 0 4px 18px rgba(20, 184, 166, 0.28);
+}
+
+.secondary-button {
+  background: #FFFFFF;
+  color: #0B2528;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  box-shadow: 0 1px 3px rgba(11, 37, 40, 0.03);
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #F9F5EB;
+  border-color: #C8A96E;
+  color: #0B2528;
+  transform: translateY(-1px);
+}
+
+[data-theme="clinical-dark"] .secondary-button {
+  background: rgba(30, 41, 59, 0.85);
+  color: #E2E8F0;
+  border-color: #334155;
+}
+
+[data-theme="clinical-dark"] .secondary-button:hover:not(:disabled) {
+  border-color: #14B8A6;
+  color: #14B8A6;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Soft-Tinted Rounded-2xl Inputs & Selects */
+.field,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+  border-radius: 1rem; /* rounded-2xl */
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  background-color: #F7F6F2;
+  color: #0B2528;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.18s ease;
+}
+
+.field:focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  background-color: #FFFFFF;
+  border-color: #0B2528;
+  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.22);
+  outline: none;
+}
+
+[data-theme="clinical-dark"] .field,
+[data-theme="clinical-dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+[data-theme="clinical-dark"] select,
+[data-theme="clinical-dark"] textarea {
+  background-color: rgba(15, 23, 42, 0.9);
+  border-color: #334155;
+  color: #F8FAFC;
+}
+
+/* Sleek Floating-Row Cards/Tables Globally */
+.workflow-table,
+table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0 0.55rem !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.workflow-table thead th,
+table thead th {
+  background: transparent !important;
+  color: #64748B !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.5rem 1rem !important;
+  border: none !important;
+}
+
+.workflow-table tbody tr,
+table tbody tr {
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(11, 37, 40, 0.035);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.workflow-table tbody tr:hover,
+table tbody tr:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(11, 37, 40, 0.07);
+  background: #FCFBF9 !important;
+}
+
+.workflow-table tbody td,
+.workflow-table tbody th,
+table tbody td {
+  padding: 0.9rem 1rem !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.7) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7) !important;
+  vertical-align: middle;
+}
+
+.workflow-table tbody tr > :first-child,
+table tbody tr > :first-child {
+  border-inline-start: 1px solid rgba(226, 232, 240, 0.7) !important;
+  border-start-start-radius: 1rem;
+  border-end-start-radius: 1rem;
+}
+
+.workflow-table tbody tr > :last-child,
+table tbody tr > :last-child {
+  border-inline-end: 1px solid rgba(226, 232, 240, 0.7) !important;
+  border-start-end-radius: 1rem;
+  border-end-end-radius: 1rem;
+}
+
+[data-theme="clinical-dark"] .workflow-table tbody tr,
+[data-theme="clinical-dark"] table tbody tr {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+[data-theme="clinical-dark"] .workflow-table tbody td,
+[data-theme="clinical-dark"] table tbody td {
+  border-color: rgba(51, 65, 85, 0.7) !important;
+  color: #E2E8F0;
+}
+
+/* Tactile Time Slot Pills */
+.slot-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  background: #FFFFFF;
+  color: #0B2528;
+  transition: all 0.15s ease;
+}
+.slot-button:hover {
+  border-color: #C8A96E;
+  background: #F9F5EB;
+  transform: translateY(-1px);
+}
+.slot-button.selected {
+  background: #0B2528;
+  color: #FFFFFF;
+  border-color: #0B2528;
+  box-shadow: 0 4px 12px rgba(11, 37, 40, 0.2);
+}
+
+/* Page Experience Wrapper — Strictly zero background images */
+.page-experience {
+  background: transparent !important;
+  background-image: none !important;
+  min-height: calc(100vh - 5rem);
+}
+
+/* Presentation switcher floating button */
+.presentation-access {
+  position: fixed;
+  bottom: 20px;
+  inset-inline-start: 88px;
+  z-index: 45;
+}
+.presentation-panel {
+  position: absolute;
+  bottom: 58px;
+  inset-inline-start: 0;
+  width: min(420px, calc(100vw - 40px));
+  max-height: 70vh;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 169, 110, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(11, 37, 40, 0.22);
+  padding: 20px;
+}
+.presentation-account {
+  text-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 12px;
+  width: 100%;
+  height: 100%;
+  background: #F7F6F2;
+  transition: all 0.15s ease;
+}
+.presentation-account:hover {
+  background: #F9F5EB;
+  border-color: #C8A96E;
+  transform: translateY(-2px);
+}
+
+/* Shared motion */
+.menu-enter {
+  animation: eb-menu-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top;
+}
+
+.eb-staff-topbar {
+  animation: eb-topbar-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.assistant-overlay {
+  animation: eb-fade-in 180ms ease-out both;
+}
+
+.assistant-drawer {
+  animation: eb-drawer-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.assistant-message {
+  animation: eb-message-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.assistant-chart {
+  animation: eb-chart-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.assistant-launcher::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(65, 105, 225, 0.4);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: eb-launcher-pulse 3s ease-out infinite;
+}
+
+@keyframes eb-menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes eb-topbar-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes eb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes eb-drawer-in {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes eb-message-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes eb-chart-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes eb-launcher-pulse {
+  0% { opacity: 0.65; transform: scale(0.94); }
+  70%, 100% { opacity: 0; transform: scale(1.28); }
+}
+
+/* Keyframe Animations */
+@keyframes pulse-radar {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.animate-radar {
+  animation: pulse-radar 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@media (max-width: 768px) {
+  .presentation-access {
+    inset-inline-start: 16px;
+    bottom: 76px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .surface-card:hover,
+  .bento-card:hover,
+  .assistant-launcher:hover {
+    transform: none;
+  }
+}

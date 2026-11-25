@@ -1,0 +1,52 @@
+[
+  {
+    "id": "usr_owner_abram",
+    "email": "admin@ebtesamty.dev",
+    "phone": "+201000000001",
+    "fullName": "Abram",
+    "clinicId": "ebtesamty-minya",
+    "role": "clinic_owner",
+    "branchCode": "ALL",
+    "passwordSalt": "",
+    "passwordHash": "",
+    "active": true
+  },
+  {
+    "id": "usr_rec_mariam",
+    "email": "mariam.reception@ebtesamty.dev",
+    "phone": "+201000000003",
+    "fullName": "Mariam Hanna",
+    "clinicId": "ebtesamty-minya",
+    "role": "receptionist",
+    "branchCode": "BR-A",
+    "passwordSalt": "",
+    "passwordHash": "",
+    "active": true
+  },
+  {
+    "id": "usr_doc_sandy",
+    "email": "dr.sandy@ebtesamty.dev",
+    "phone": "+201000000005",
+    "fullName": "Dr. Sandy Saad",
+    "clinicId": "ebtesamty-minya",
+    "role": "doctor",
+    "branchCode": "BR-A",
+    "doctorNameEn": "Dr. Sandy Saad",
+    "passwordSalt": "",
+    "passwordHash": "",
+    "active": true
+  },
+  {
+    "id": "usr_pat_passant",
+    "email": "hassan.patient@ebtesamty.dev",
+    "phone": "01200054405",
+    "fullName": "Passant",
+    "clinicId": "ebtesamty-minya",
+    "role": "patient",
+    "branchCode": "BR-A",
+    "patientId": "EBT-PAT-0001",
+    "passwordSalt": "",
+    "passwordHash": "",
+    "active": true
+  }
+]

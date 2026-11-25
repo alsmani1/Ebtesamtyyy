@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ebtesamty-assistant-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-24",
+  "workers_dev": true,
+  "limits": { "cpu_ms": 30000 },
+  "vars": {
+    "ALLOWED_ORIGIN": "http://localhost:3000",
+    "GEMINI_MODEL": "gemini-3.5-flash-lite"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ebtesamty-assistant",
+      "database_id": "",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": false }
+}
