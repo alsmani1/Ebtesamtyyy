@@ -73,15 +73,17 @@ interface CalendarSlotItem {
   patientNameAr: string;
   procedureEn: string;
   procedureAr: string;
-  doctorId: 'dr-sandy' | 'dr-ahmed' | 'dr-sara' | 'dr-karim';
+  doctorId: 'dr-sandy' | 'dr-ahmed' | 'dr-sara' | 'dr-karim' | 'dr-youssef' | 'dr-nadia';
   doctorNameEn: string;
   doctorNameAr: string;
   status: AppointmentStatus;
 }
 
 const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
+  // ── Branch A (Minya Corniche · Mariam Hanna): Dr. Sandy Saad & Dr. Feby Samer ──
   {
     id: 'cal-sandy-1',
+    branchCode: 'BR-A',
     dayCol: 2,
     chairId: 'CHAIR-1',
     time: '10:00 AM',
@@ -96,6 +98,7 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
   },
   {
     id: 'cal-1',
+    branchCode: 'BR-A',
     dayCol: 0,
     chairId: 'CHAIR-1',
     time: '10:30 AM',
@@ -110,6 +113,7 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
   },
   {
     id: 'cal-2',
+    branchCode: 'BR-A',
     dayCol: 0,
     chairId: 'CHAIR-2',
     time: '11:30 AM',
@@ -124,6 +128,7 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
   },
   {
     id: 'cal-3',
+    branchCode: 'BR-A',
     dayCol: 1,
     chairId: 'CHAIR-1',
     time: '10:30 AM',
@@ -137,21 +142,8 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
     status: 'ARRIVED',
   },
   {
-    id: 'cal-4',
-    dayCol: 1,
-    chairId: 'CHAIR-2',
-    time: '12:35 PM',
-    patientNameEn: 'Amir Amin',
-    patientNameAr: 'أمير أمين',
-    procedureEn: 'Orthodontics',
-    procedureAr: 'تقويم أسنان',
-    doctorId: 'dr-karim',
-    doctorNameEn: 'Dr. Ahmed Hassan',
-    doctorNameAr: 'د. أحمد حسن',
-    status: 'COMPLETED',
-  },
-  {
     id: 'cal-5',
+    branchCode: 'BR-A',
     dayCol: 2,
     chairId: 'CHAIR-1',
     time: '11:30 AM',
@@ -166,7 +158,8 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
   },
   {
     id: 'cal-6',
-    dayCol: 2,
+    branchCode: 'BR-A',
+    dayCol: 3,
     chairId: 'CHAIR-2',
     time: '02:30 PM',
     patientNameEn: 'Amira Ayman',
@@ -180,7 +173,8 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
   },
   {
     id: 'cal-7',
-    dayCol: 3,
+    branchCode: 'BR-A',
+    dayCol: 4,
     chairId: 'CHAIR-1',
     time: '10:30 AM',
     patientNameEn: 'Yasmine Amin',
@@ -193,24 +187,11 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
     status: 'CONFIRMED',
   },
   {
-    id: 'cal-8',
-    dayCol: 3,
-    chairId: 'CHAIR-3',
-    time: '02:15 PM',
-    patientNameEn: 'Ahmed Mahmoud',
-    patientNameAr: 'أحمد محمود',
-    procedureEn: 'Orthodontics',
-    procedureAr: 'تقويم أسنان',
-    doctorId: 'dr-karim',
-    doctorNameEn: 'Dr. Ahmed Hassan',
-    doctorNameAr: 'د. أحمد حسن',
-    status: 'CONFIRMED',
-  },
-  {
     id: 'cal-9',
-    dayCol: 4,
+    branchCode: 'BR-A',
+    dayCol: 5,
     chairId: 'CHAIR-2',
-    time: '10:30 AM',
+    time: '12:00 PM',
     patientNameEn: 'Ibrahim Hassan',
     patientNameAr: 'إبراهيم حسن',
     procedureEn: 'Exam & Diagnosis',
@@ -220,55 +201,236 @@ const INITIAL_CALENDAR_ITEMS: CalendarSlotItem[] = [
     doctorNameAr: 'د. ساندي سعد',
     status: 'CONFIRMED',
   },
+
+  // ── Branch B (New Minya · Sandy Abd): Dr. Ahmed Hassan & Dr. Youssef El-Mansy ──
+  {
+    id: 'cal-4',
+    branchCode: 'BR-B',
+    dayCol: 0,
+    chairId: 'CHAIR-1',
+    time: '11:00 AM',
+    patientNameEn: 'Amir Amin',
+    patientNameAr: 'أمير أمين',
+    procedureEn: 'Dental Implant Consult',
+    procedureAr: 'استشارة زراعة أسنان',
+    doctorId: 'dr-ahmed',
+    doctorNameEn: 'Dr. Ahmed Hassan',
+    doctorNameAr: 'د. أحمد حسن',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'cal-b-1',
+    branchCode: 'BR-B',
+    dayCol: 1,
+    chairId: 'CHAIR-2',
+    time: '01:00 PM',
+    patientNameEn: 'Rania Tarek',
+    patientNameAr: 'رانيا طارق',
+    procedureEn: 'Clear Aligners Fitting',
+    procedureAr: 'تركيب تقويم شفاف',
+    doctorId: 'dr-youssef',
+    doctorNameEn: 'Dr. Youssef El-Mansy',
+    doctorNameAr: 'د. يوسف المنسي',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'cal-b-2',
+    branchCode: 'BR-B',
+    dayCol: 2,
+    chairId: 'CHAIR-1',
+    time: '12:30 PM',
+    patientNameEn: 'Mostafa Nabil',
+    patientNameAr: 'مصطفى نبيل',
+    procedureEn: 'Wisdom Tooth Extraction',
+    procedureAr: 'خلع ضرس العقل',
+    doctorId: 'dr-ahmed',
+    doctorNameEn: 'Dr. Ahmed Hassan',
+    doctorNameAr: 'د. أحمد حسن',
+    status: 'ARRIVED',
+  },
+  {
+    id: 'cal-8',
+    branchCode: 'BR-B',
+    dayCol: 3,
+    chairId: 'CHAIR-3',
+    time: '02:15 PM',
+    patientNameEn: 'Ahmed Mahmoud',
+    patientNameAr: 'أحمد محمود',
+    procedureEn: 'Orthodontics',
+    procedureAr: 'تقويم أسنان',
+    doctorId: 'dr-youssef',
+    doctorNameEn: 'Dr. Youssef El-Mansy',
+    doctorNameAr: 'د. يوسف المنسي',
+    status: 'CONFIRMED',
+  },
+  {
+    id: 'cal-b-3',
+    branchCode: 'BR-B',
+    dayCol: 4,
+    chairId: 'CHAIR-1',
+    time: '11:30 AM',
+    patientNameEn: 'Hossam El-Din',
+    patientNameAr: 'حسام الدين',
+    procedureEn: 'Implant Crown Placement',
+    procedureAr: 'تركيب تاج على زراعة',
+    doctorId: 'dr-ahmed',
+    doctorNameEn: 'Dr. Ahmed Hassan',
+    doctorNameAr: 'د. أحمد حسن',
+    status: 'CONFIRMED',
+  },
   {
     id: 'cal-10',
+    branchCode: 'BR-B',
     dayCol: 5,
-    chairId: 'CHAIR-1',
+    chairId: 'CHAIR-3',
     time: '10:30 AM',
     patientNameEn: 'Salma Ibrahim',
     patientNameAr: 'سلمى إبراهيم',
-    procedureEn: 'Orthodontics',
-    procedureAr: 'تقويم أسنان',
-    doctorId: 'dr-karim',
-    doctorNameEn: 'Dr. Ahmed Hassan',
-    doctorNameAr: 'د. أحمد حسن',
+    procedureEn: 'Braces Adjustment',
+    procedureAr: 'شد وضبط التقويم',
+    doctorId: 'dr-youssef',
+    doctorNameEn: 'Dr. Youssef El-Mansy',
+    doctorNameAr: 'د. يوسف المنسي',
+    status: 'CONFIRMED',
+  },
+
+  // ── Branch C (Taha Hussein St · Salma El-Masry): Dr. Nadia El-Hariry ──
+  {
+    id: 'cal-c-1',
+    branchCode: 'BR-C',
+    dayCol: 0,
+    chairId: 'CHAIR-1',
+    time: '10:00 AM',
+    patientNameEn: 'Yara Adel',
+    patientNameAr: 'يارا عادل',
+    procedureEn: 'Pediatric Checkup & Fluoride',
+    procedureAr: 'كشف أطفال وجلسة فلورايد',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'cal-c-2',
+    branchCode: 'BR-C',
+    dayCol: 1,
+    chairId: 'CHAIR-1',
+    time: '12:00 PM',
+    patientNameEn: 'Seif El-Din',
+    patientNameAr: 'سيف الدين',
+    procedureEn: 'Family Restorative Filling',
+    procedureAr: 'حشو ترميمي للأسنان',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
+    status: 'COMPLETED',
+  },
+  {
+    id: 'cal-c-3',
+    branchCode: 'BR-C',
+    dayCol: 2,
+    chairId: 'CHAIR-2',
+    time: '01:30 PM',
+    patientNameEn: 'Malak Sherif',
+    patientNameAr: 'ملك شريف',
+    procedureEn: 'Pediatric Pulpotomy',
+    procedureAr: 'علاج عصب أطفال',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
+    status: 'ARRIVED',
+  },
+  {
+    id: 'cal-c-4',
+    branchCode: 'BR-C',
+    dayCol: 3,
+    chairId: 'CHAIR-1',
+    time: '11:00 AM',
+    patientNameEn: 'Nourhan Samir',
+    patientNameAr: 'نورهان سمير',
+    procedureEn: 'Scaling & Polishing',
+    procedureAr: 'تنظيف جير وتلميع',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
+    status: 'CONFIRMED',
+  },
+  {
+    id: 'cal-c-5',
+    branchCode: 'BR-C',
+    dayCol: 4,
+    chairId: 'CHAIR-1',
+    time: '03:00 PM',
+    patientNameEn: 'Adam Walid',
+    patientNameAr: 'آدم وليد',
+    procedureEn: 'Space Maintainer Check',
+    procedureAr: 'متابعة حافظ مسافة للأطفال',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
+    status: 'CONFIRMED',
+  },
+  {
+    id: 'cal-c-6',
+    branchCode: 'BR-C',
+    dayCol: 5,
+    chairId: 'CHAIR-2',
+    time: '12:30 PM',
+    patientNameEn: 'Lina Magdy',
+    patientNameAr: 'لينا مجدي',
+    procedureEn: 'Composite Restoration',
+    procedureAr: 'حشو تجميلي للأطفال',
+    doctorId: 'dr-nadia',
+    doctorNameEn: 'Dr. Nadia El-Hariry',
+    doctorNameAr: 'د. نادية الحريري',
     status: 'CONFIRMED',
   },
 ];
 
 type SlotTemplate = Omit<CalendarSlotItem, 'id' | 'weekOffset'>;
 
-/** Extra visits used to give every surrounding week its own, different schedule. */
+/** Extra visits used to give every surrounding week its own schedule across all 3 branches. */
 const EXTRA_WEEK_POOL: SlotTemplate[] = [
-  { dayCol: 0, chairId: 'CHAIR-2', time: '09:45 AM', patientNameEn: 'Hana Mostafa', patientNameAr: 'هنا مصطفى', procedureEn: 'Composite Filling', procedureAr: 'حشو تجميلي', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'COMPLETED' },
-  { dayCol: 0, chairId: 'CHAIR-1', time: '12:00 PM', patientNameEn: 'Youssef Nabil', patientNameAr: 'يوسف نبيل', procedureEn: 'Implant Review', procedureAr: 'مراجعة زراعة', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
-  { dayCol: 0, chairId: 'CHAIR-3', time: '02:45 PM', patientNameEn: 'Dina Fouad', patientNameAr: 'دينا فؤاد', procedureEn: 'Gum Treatment', procedureAr: 'علاج اللثة', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
-  { dayCol: 1, chairId: 'CHAIR-3', time: '11:00 AM', patientNameEn: 'Mariam Adel', patientNameAr: 'مريم عادل', procedureEn: 'Scaling & Polishing', procedureAr: 'تنظيف وتلميع', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
-  { dayCol: 1, chairId: 'CHAIR-1', time: '02:00 PM', patientNameEn: 'Omar Farouk', patientNameAr: 'عمر فاروق', procedureEn: 'Root Canal', procedureAr: 'علاج الجذور', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'ARRIVED' },
-  { dayCol: 1, chairId: 'CHAIR-3', time: '09:00 AM', patientNameEn: 'Laila Kamal', patientNameAr: 'ليلى كمال', procedureEn: 'Composite Bonding', procedureAr: 'تجميل تجميلي', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'COMPLETED' },
-  { dayCol: 2, chairId: 'CHAIR-2', time: '09:30 AM', patientNameEn: 'Nada Sherif', patientNameAr: 'ندى شريف', procedureEn: 'Veneer Prep', procedureAr: 'تحضير فينير', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
-  { dayCol: 2, chairId: 'CHAIR-3', time: '01:15 PM', patientNameEn: 'Karim Adel', patientNameAr: 'كريم عادل', procedureEn: 'Extraction', procedureAr: 'خلع سن', doctorId: 'dr-karim', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'COMPLETED' },
-  { dayCol: 3, chairId: 'CHAIR-1', time: '10:00 AM', patientNameEn: 'Salma Fouad', patientNameAr: 'سلمى فؤاد', procedureEn: 'Crown Fitting', procedureAr: 'تركيب تاج', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
-  { dayCol: 3, chairId: 'CHAIR-3', time: '03:30 PM', patientNameEn: 'Tamer Hosny', patientNameAr: 'تامر حسني', procedureEn: 'Ortho Adjustment', procedureAr: 'متابعة تقويم', doctorId: 'dr-karim', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'CONFIRMED' },
-  { dayCol: 4, chairId: 'CHAIR-2', time: '11:45 AM', patientNameEn: 'Rana Yasser', patientNameAr: 'رنا ياسر', procedureEn: 'Filling', procedureAr: 'حشو', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'ARRIVED' },
-  { dayCol: 4, chairId: 'CHAIR-3', time: '04:00 PM', patientNameEn: 'Ahmed Zaki', patientNameAr: 'أحمد زكي', procedureEn: 'Teeth Whitening', procedureAr: 'تبييض أسنان', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
-  { dayCol: 4, chairId: 'CHAIR-2', time: '10:30 AM', patientNameEn: 'Ziad Ashraf', patientNameAr: 'زياد أشرف', procedureEn: 'Implant Surgery', procedureAr: 'جراحة زراعة', doctorId: 'dr-karim', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'CONFIRMED' },
-  { dayCol: 5, chairId: 'CHAIR-2', time: '10:15 AM', patientNameEn: 'Farida Sameh', patientNameAr: 'فريدة سامح', procedureEn: 'Pediatric Checkup', procedureAr: 'كشف أطفال', doctorId: 'dr-karim', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'COMPLETED' },
-  { dayCol: 5, chairId: 'CHAIR-1', time: '12:30 PM', patientNameEn: 'Hassan Ali', patientNameAr: 'حسن علي', procedureEn: 'Denture Adjustment', procedureAr: 'ضبط طقم', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
-  { dayCol: 6, chairId: 'CHAIR-2', time: '09:15 AM', patientNameEn: 'Nourhan Adel', patientNameAr: 'نورهان عادل', procedureEn: 'Night Guard', procedureAr: 'واقي أسنان', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
-  { dayCol: 6, chairId: 'CHAIR-1', time: '01:00 PM', patientNameEn: 'Mahmoud Ezzat', patientNameAr: 'محمود عزت', procedureEn: 'Post & Core', procedureAr: 'دعامة', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'ARRIVED' },
+  // Branch A
+  { branchCode: 'BR-A', dayCol: 0, chairId: 'CHAIR-2', time: '09:45 AM', patientNameEn: 'Hana Mostafa', patientNameAr: 'هنا مصطفى', procedureEn: 'Composite Filling', procedureAr: 'حشو تجميلي', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'COMPLETED' },
+  { branchCode: 'BR-A', dayCol: 1, chairId: 'CHAIR-1', time: '12:00 PM', patientNameEn: 'Youssef Nabil', patientNameAr: 'يوسف نبيل', procedureEn: 'Crown Prep', procedureAr: 'تحضير تاج', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
+  { branchCode: 'BR-A', dayCol: 2, chairId: 'CHAIR-2', time: '02:45 PM', patientNameEn: 'Dina Fouad', patientNameAr: 'دينا فؤاد', procedureEn: 'Root Canal', procedureAr: 'علاج الجذور', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
+  { branchCode: 'BR-A', dayCol: 3, chairId: 'CHAIR-1', time: '11:00 AM', patientNameEn: 'Mariam Adel', patientNameAr: 'مريم عادل', procedureEn: 'Scaling & Polishing', procedureAr: 'تنظيف وتلميع', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
+  { branchCode: 'BR-A', dayCol: 4, chairId: 'CHAIR-1', time: '02:00 PM', patientNameEn: 'Omar Farouk', patientNameAr: 'عمر فاروق', procedureEn: 'Veneer Consultation', procedureAr: 'استشارة فينير', doctorId: 'dr-sandy', doctorNameEn: 'Dr. Sandy Saad', doctorNameAr: 'د. ساندي سعد', status: 'CONFIRMED' },
+  { branchCode: 'BR-A', dayCol: 5, chairId: 'CHAIR-2', time: '10:30 AM', patientNameEn: 'Laila Kamal', patientNameAr: 'ليلى كمال', procedureEn: 'Composite Bonding', procedureAr: 'تجميل الأسنان', doctorId: 'dr-sara', doctorNameEn: 'Dr. Feby Samer', doctorNameAr: 'د. فيبي سامر', status: 'CONFIRMED' },
+  // Branch B
+  { branchCode: 'BR-B', dayCol: 0, chairId: 'CHAIR-1', time: '10:15 AM', patientNameEn: 'Karim Adel', patientNameAr: 'كريم عادل', procedureEn: 'Surgical Extraction', procedureAr: 'خلع جراحي', doctorId: 'dr-ahmed', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'COMPLETED' },
+  { branchCode: 'BR-B', dayCol: 1, chairId: 'CHAIR-3', time: '01:15 PM', patientNameEn: 'Tamer Hosny', patientNameAr: 'تامر حسني', procedureEn: 'Ortho Adjustment', procedureAr: 'متابعة تقويم', doctorId: 'dr-youssef', doctorNameEn: 'Dr. Youssef El-Mansy', doctorNameAr: 'د. يوسف المنسي', status: 'CONFIRMED' },
+  { branchCode: 'BR-B', dayCol: 2, chairId: 'CHAIR-1', time: '11:45 AM', patientNameEn: 'Ziad Ashraf', patientNameAr: 'زياد أشرف', procedureEn: 'Implant Surgery', procedureAr: 'جراحة زراعة', doctorId: 'dr-ahmed', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'CONFIRMED' },
+  { branchCode: 'BR-B', dayCol: 3, chairId: 'CHAIR-3', time: '03:30 PM', patientNameEn: 'Nourhan Adel', patientNameAr: 'نورهان عادل', procedureEn: 'Clear Aligner Check', procedureAr: 'متابعة تقويم شفاف', doctorId: 'dr-youssef', doctorNameEn: 'Dr. Youssef El-Mansy', doctorNameAr: 'د. يوسف المنسي', status: 'CONFIRMED' },
+  { branchCode: 'BR-B', dayCol: 4, chairId: 'CHAIR-1', time: '12:30 PM', patientNameEn: 'Hassan Ali', patientNameAr: 'حسن علي', procedureEn: 'Implant Follow-Up', procedureAr: 'مراجعة زراعة', doctorId: 'dr-ahmed', doctorNameEn: 'Dr. Ahmed Hassan', doctorNameAr: 'د. أحمد حسن', status: 'CONFIRMED' },
+  { branchCode: 'BR-B', dayCol: 5, chairId: 'CHAIR-3', time: '01:00 PM', patientNameEn: 'Mahmoud Ezzat', patientNameAr: 'محمود عزت', procedureEn: 'Retainer Delivery', procedureAr: 'تسليم مثبت التقويم', doctorId: 'dr-youssef', doctorNameEn: 'Dr. Youssef El-Mansy', doctorNameAr: 'د. يوسف المنسي', status: 'CONFIRMED' },
+  // Branch C
+  { branchCode: 'BR-C', dayCol: 0, chairId: 'CHAIR-1', time: '10:30 AM', patientNameEn: 'Farida Sameh', patientNameAr: 'فريدة سامح', procedureEn: 'Pediatric Checkup', procedureAr: 'كشف أطفال', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'COMPLETED' },
+  { branchCode: 'BR-C', dayCol: 1, chairId: 'CHAIR-2', time: '11:30 AM', patientNameEn: 'Rana Yasser', patientNameAr: 'رنا ياسر', procedureEn: 'Restorative Filling', procedureAr: 'حشو ترميمي', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'CONFIRMED' },
+  { branchCode: 'BR-C', dayCol: 2, chairId: 'CHAIR-1', time: '01:00 PM', patientNameEn: 'Ahmed Zaki', patientNameAr: 'أحمد زكي', procedureEn: 'Family Checkup', procedureAr: 'كشف أسنان العائلة', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'CONFIRMED' },
+  { branchCode: 'BR-C', dayCol: 3, chairId: 'CHAIR-2', time: '02:00 PM', patientNameEn: 'Nada Sherif', patientNameAr: 'ندى شريف', procedureEn: 'Fluoride & Sealant', procedureAr: 'فلورايد ووقاية', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'CONFIRMED' },
+  { branchCode: 'BR-C', dayCol: 4, chairId: 'CHAIR-1', time: '10:00 AM', patientNameEn: 'Salma Fouad', patientNameAr: 'سلمى فؤاد', procedureEn: 'Pediatric Hygiene', procedureAr: 'تنظيف أسنان للأطفال', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'CONFIRMED' },
+  { branchCode: 'BR-C', dayCol: 5, chairId: 'CHAIR-1', time: '12:15 PM', patientNameEn: 'Youssef Karim', patientNameAr: 'يوسف كريم', procedureEn: 'Dental Sealant', procedureAr: 'حشو وقائي للأطفال', doctorId: 'dr-nadia', doctorNameEn: 'Dr. Nadia El-Hariry', doctorNameAr: 'د. نادية الحريري', status: 'CONFIRMED' },
 ];
 
-/** Deterministic, collision-free slice of the pool for a given week so each week differs. */
+/** Deterministic slice per branch so every week has full schedules for BR-A, BR-B, and BR-C. */
 function extraWeekItems(weekOffset: number): CalendarSlotItem[] {
-  const poolStart =
-    (((weekOffset * 5) % EXTRA_WEEK_POOL.length) + EXTRA_WEEK_POOL.length) %
-    EXTRA_WEEK_POOL.length;
-  return Array.from({ length: 6 }, (_, k) => ({
-    ...EXTRA_WEEK_POOL[(poolStart + k * 4) % EXTRA_WEEK_POOL.length],
-    id: `wk-${weekOffset}-${k}`,
-    weekOffset,
-  }));
+  const branches: AppointmentBranchCode[] = ['BR-A', 'BR-B', 'BR-C'];
+  const items: CalendarSlotItem[] = [];
+  for (const branch of branches) {
+    const pool = EXTRA_WEEK_POOL.filter((item) => item.branchCode === branch);
+    const shift = (((weekOffset * 2) % pool.length) + pool.length) % pool.length;
+    for (let k = 0; k < 4; k += 1) {
+      const template = pool[(shift + k) % pool.length];
+      items.push({
+        ...template,
+        id: `wk-${weekOffset}-${branch}-${k}`,
+        weekOffset,
+      });
+    }
+  }
+  return items;
 }
 
 /** Most recent Saturday at local midnight (Egypt weeks start Saturday). */
@@ -325,10 +487,12 @@ function calendarItemDate(item: CalendarSlotItem, dayCol = item.dayCol): string 
 }
 
 function calendarItemBranchCode(item: CalendarSlotItem): AppointmentBranchCode {
-  return (
-    item.branchCode ||
-    (item.doctorId === 'dr-ahmed' || item.doctorId === 'dr-karim' ? 'BR-B' : 'BR-A')
-  );
+  if (item.branchCode) return item.branchCode;
+  if (item.doctorId === 'dr-ahmed' || item.doctorId === 'dr-karim' || item.doctorId === 'dr-youssef') {
+    return 'BR-B';
+  }
+  if (item.doctorId === 'dr-nadia') return 'BR-C';
+  return 'BR-A';
 }
 
 /** Full shared-store record for a calendar row. */
@@ -370,8 +534,15 @@ export function publishCalendarAppointmentsToStore(source?: CalendarSlotItem[]):
     source ?? readLocalJson<CalendarSlotItem[]>(CALENDAR_ITEMS_KEY, INITIAL_CALENDAR_STATE);
   if (!Array.isArray(rawRows)) return;
   const todayIso = clinicTodayISO();
-  const rows = rawRows.map((row) => normalizeFutureCalendarItem(row, todayIso));
   const stored = listAppointments();
+  const cancelledIds = new Set(stored.filter((row) => row.status === 'CANCELLED').map((row) => row.id));
+  const rawIds = new Set(rawRows.map((row) => row.id));
+  const missingSeeds = INITIAL_CALENDAR_STATE.filter(
+    (seed) => !rawIds.has(seed.id) && !cancelledIds.has(seed.id)
+  );
+  const rows = [...rawRows, ...missingSeeds].map((row) =>
+    normalizeFutureCalendarItem(row, todayIso)
+  );
   const calendarById = new Map(
     rows
       .filter((row) => row.status !== 'CANCELLED')
@@ -437,6 +608,9 @@ export function SmartClinicCalendar({
 
   const [viewMode, setViewMode] = useState<'week' | 'chairs' | 'month'>('week');
   const [selectedDoctor, setSelectedDoctor] = useState<string>(isDentist ? 'dr-sandy' : 'ALL');
+  useEffect(() => {
+    if (!isDentist) setSelectedDoctor('ALL');
+  }, [branchCode, isDentist]);
   const [activeWeekTab, setActiveWeekTab] = useState<number>(2);
   const [items, setItems] = usePersistedState<CalendarSlotItem[]>(
     CALENDAR_ITEMS_KEY,
@@ -573,9 +747,11 @@ export function SmartClinicCalendar({
           ? 'dr-sandy'
           : /feby|sara/i.test(doctorName)
           ? 'dr-sara'
-          : /ahmed/i.test(doctorName)
-          ? 'dr-ahmed'
-          : 'dr-karim';
+          : /youssef|mansy/i.test(doctorName)
+          ? 'dr-youssef'
+          : /nadia|hariry/i.test(doctorName)
+          ? 'dr-nadia'
+          : 'dr-ahmed';
         const chairId: CalendarSlotItem['chairId'] =
           existing?.chairId ??
           (doctorId === 'dr-sandy' ? 'CHAIR-1' : doctorId === 'dr-sara' ? 'CHAIR-2' : 'CHAIR-3');
@@ -605,7 +781,11 @@ export function SmartClinicCalendar({
         const hiddenIds = new Set(
           stored.filter((p) => p.status === 'CANCELLED' || p.isPast).map((p) => p.id)
         );
-        const kept = prev
+        const prevIds = new Set(prev.map((item) => item.id));
+        const seedAdditions = INITIAL_CALENDAR_STATE.filter(
+          (seed) => !prevIds.has(seed.id) && !hiddenIds.has(seed.id)
+        );
+        const kept = [...prev, ...seedAdditions]
           .filter((item) => !hiddenIds.has(item.id))
           .map((item) => {
             const record = visibleById.get(item.id);
@@ -879,11 +1059,16 @@ export function SmartClinicCalendar({
     { id: 'CHAIR-3' as const, labelEn: 'Chair 3 — Ortho & Hygiene', labelAr: 'كرسي ٣ — تقويم وتجميل' },
   ];
 
+  const allDoctors = [
+    { id: 'dr-sandy', branch: 'BR-A' as const, labelEn: 'Dr. Sandy Saad', labelAr: 'د. ساندي سعد' },
+    { id: 'dr-sara', branch: 'BR-A' as const, labelEn: 'Dr. Feby Samer', labelAr: 'د. فيبي سامر' },
+    { id: 'dr-ahmed', branch: 'BR-B' as const, labelEn: 'Dr. Ahmed Hassan', labelAr: 'د. أحمد حسن' },
+    { id: 'dr-youssef', branch: 'BR-B' as const, labelEn: 'Dr. Youssef El-Mansy', labelAr: 'د. يوسف المنسي' },
+    { id: 'dr-nadia', branch: 'BR-C' as const, labelEn: 'Dr. Nadia El-Hariry', labelAr: 'د. نادية الحريري' },
+  ];
   const doctors = [
     { id: 'ALL', labelEn: 'All Doctors', labelAr: 'كل الأطباء' },
-    { id: 'dr-sandy', labelEn: 'Dr. Sandy Saad', labelAr: 'د. ساندي سعد' },
-    { id: 'dr-sara', labelEn: 'Dr. Feby Samer', labelAr: 'د. فيبي سامر' },
-    { id: 'dr-karim', labelEn: 'Dr. Ahmed Hassan', labelAr: 'د. أحمد حسن' },
+    ...allDoctors.filter((doc) => branchCode === 'ALL' || doc.branch === branchCode),
   ];
 
   // When role === 'DENTIST', show ONLY the logged-in doctor's own schedule
