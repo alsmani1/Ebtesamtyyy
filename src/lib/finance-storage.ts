@@ -138,11 +138,13 @@ export function computeDoctorSalaryRows(
     }
   }
 
+  // Filter eligible invoices (exclude any tied to a non-completed appointment)
+  // and pair at most 1 invoice per completed appointment so N completed visits
+  // can never count more than N invoices.
+  const eligibleByDoctor = new Map<string, SharedInvoiceRecord[]>();
   for (const inv of invoices) {
     const key = `${inv.branch}:${inv.doctorEn}`;
     const row = map.get(key);
-    // Only count invoices for doctors with completed appointments, and skip any invoice
-    // tied to a confirmed/arrived/cancelled/no-show appointment that is not completed.
     if (!row || row.completedAppointments === 0) continue;
     const doc = norm(inv.doctorEn);
     const idKey = inv.patientId ? `${inv.branch}:${doc}:id:${norm(inv.patientId)}` : '';
@@ -151,10 +153,35 @@ export function computeDoctorSalaryRows(
       (idKey && nonCompletedKeys.has(idKey) && !completedKeys.has(idKey)) ||
       (nameKey && nonCompletedKeys.has(nameKey) && !completedKeys.has(nameKey));
     if (hasUncompletedOnly) continue;
+    const list = eligibleByDoctor.get(key) ?? [];
+    list.push(inv);
+    eligibleByDoctor.set(key, list);
+  }
 
-    row.invoiceCount += 1;
-    row.totalInvoicedEgp += inv.totalAmount;
-    if (inv.date > row.latestInvoiceDate) row.latestInvoiceDate = inv.date;
+  for (const [key, list] of eligibleByDoctor.entries()) {
+    const row = map.get(key);
+    if (!row) continue;
+    // Prefer invoices whose patient matches a completed appointment first
+    const prioritized = [...list].sort((a, b) => {
+      const doc = norm(row.doctorEn);
+      const aMatch =
+        (a.patientId && completedKeys.has(`${row.branch}:${doc}:id:${norm(a.patientId)}`)) ||
+        (a.patientNameEn && completedKeys.has(`${row.branch}:${doc}:name:${norm(a.patientNameEn)}`))
+          ? 1
+          : 0;
+      const bMatch =
+        (b.patientId && completedKeys.has(`${row.branch}:${doc}:id:${norm(b.patientId)}`)) ||
+        (b.patientNameEn && completedKeys.has(`${row.branch}:${doc}:name:${norm(b.patientNameEn)}`))
+          ? 1
+          : 0;
+      return bMatch - aMatch;
+    });
+    const counted = prioritized.slice(0, row.completedAppointments);
+    for (const inv of counted) {
+      row.invoiceCount += 1;
+      row.totalInvoicedEgp += inv.totalAmount;
+      if (inv.date > row.latestInvoiceDate) row.latestInvoiceDate = inv.date;
+    }
   }
 
   return Array.from(map.values())

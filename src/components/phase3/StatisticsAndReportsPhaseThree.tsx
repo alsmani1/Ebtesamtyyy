@@ -183,21 +183,26 @@ export default function StatisticsAndReportsPhaseThree({
     [branchCode, periodRange, dentistFilter, serviceFilter, salarySyncTick]
   );
 
-  const scopedSalaryEgp = useMemo(() => {
-    if (!activeDentistName) return 0;
+  const scopedSalarySummary = useMemo(() => {
+    if (!activeDentistName) return { salaryEgp: 0, invoicedEgp: 0, invoiceCount: 0 };
     const completedCount = filteredAppointments.filter(
       (a) => a.status === "COMPLETED" && a.doctorNameEn === activeDentistName
     ).length;
-    if (completedCount === 0) return 0;
-    if (
-      periodFilter === "this_month" &&
-      serviceFilter === "ALL" &&
-      mySalaryRow
-    ) {
-      return mySalaryRow.salaryEgp;
+    if (completedCount === 0) return { salaryEgp: 0, invoicedEgp: 0, invoiceCount: 0 };
+    if (periodFilter === "this_month" && serviceFilter === "ALL" && mySalaryRow) {
+      return {
+        salaryEgp: mySalaryRow.salaryEgp,
+        invoicedEgp: mySalaryRow.totalInvoicedEgp,
+        invoiceCount: mySalaryRow.invoiceCount,
+      };
     }
-    const invoiced = scopedInvoices.reduce((s, inv) => s + inv.totalAmount, 0);
-    return Math.round(invoiced * 0.4);
+    const counted = scopedInvoices.slice(0, completedCount);
+    const invoicedEgp = counted.reduce((s, inv) => s + inv.totalAmount, 0);
+    return {
+      salaryEgp: Math.round(invoicedEgp * 0.4),
+      invoicedEgp,
+      invoiceCount: counted.length,
+    };
   }, [activeDentistName, filteredAppointments, periodFilter, serviceFilter, mySalaryRow, scopedInvoices]);
 
   const branchLabel =
@@ -631,7 +636,7 @@ export default function StatisticsAndReportsPhaseThree({
               </div>
               <div className="mt-2 flex items-baseline gap-1.5 tabular-nums">
                 <span className="text-2xl font-black text-emerald-950">
-                  {scopedSalaryEgp.toLocaleString()}
+                  {scopedSalarySummary.salaryEgp.toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-emerald-700">
                   {isAr ? "ج.م" : "EGP"}
@@ -639,8 +644,8 @@ export default function StatisticsAndReportsPhaseThree({
               </div>
               <p className="mt-1 text-[11px] font-semibold text-emerald-800">
                 {isAr
-                  ? `${completedScopedAppts} موعد مكتمل من ${totalScopedAppts} · ${mySalaryRow.invoiceCount} فاتورة (40% × ${mySalaryRow.totalInvoicedEgp.toLocaleString()} ج.م)`
-                  : `${completedScopedAppts} completed of ${totalScopedAppts} visits · ${mySalaryRow.invoiceCount} invoices (40% × EGP ${mySalaryRow.totalInvoicedEgp.toLocaleString()})`}
+                  ? `${completedScopedAppts} موعد مكتمل من ${totalScopedAppts} · ${scopedSalarySummary.invoiceCount} فاتورة (40% × ${scopedSalarySummary.invoicedEgp.toLocaleString()} ج.م)`
+                  : `${completedScopedAppts} completed of ${totalScopedAppts} visits · ${scopedSalarySummary.invoiceCount} invoices (40% × EGP ${scopedSalarySummary.invoicedEgp.toLocaleString()})`}
               </p>
             </div>
           )}
