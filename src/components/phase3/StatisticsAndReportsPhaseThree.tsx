@@ -629,8 +629,8 @@ export default function StatisticsAndReportsPhaseThree({
                       </div>
                       <div className="text-xs text-slate-500">
                         {isAr
-                          ? `${doc.cases} حالة · تحصيل ${doc.collectionRatePercent}%`
-                          : `${doc.cases} cases · ${doc.collectionRatePercent}% collected`}
+                          ? `${salRow?.completedAppointments ?? 0} موعد مكتمل · تحصيل ${doc.collectionRatePercent}%`
+                          : `${salRow?.completedAppointments ?? 0} completed · ${doc.collectionRatePercent}% collected`}
                       </div>
                     </div>
                   </div>

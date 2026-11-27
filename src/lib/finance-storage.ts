@@ -92,36 +92,38 @@ export function computeDoctorSalaryRows(
   const invoices = listSharedInvoices().filter(
     (inv) => branch === 'ALL' || inv.branch === branch
   );
-  const completed = listAppointments().filter(
-    (appt) =>
-      appt.status === 'COMPLETED' &&
-      (branch === 'ALL' || appt.branchCode === branch)
+  const allAppointments = listAppointments().filter(
+    (appt) => branch === 'ALL' || appt.branchCode === branch
   );
+  const completed = allAppointments.filter((appt) => appt.status === 'COMPLETED');
 
-  const map = new Map<string, DoctorSalaryRow>();
-  for (const inv of invoices) {
-    const key = `${inv.branch}:${inv.doctorEn}`;
-    const row = map.get(key) ?? {
-      doctorEn: inv.doctorEn,
-      doctorAr: inv.doctorAr,
-      branch: inv.branch,
-      completedAppointments: 0,
-      invoiceCount: 0,
-      totalInvoicedEgp: 0,
-      salaryEgp: 0,
-      latestInvoiceDate: inv.date,
-    };
-    row.invoiceCount += 1;
-    row.totalInvoicedEgp += inv.totalAmount;
-    if (inv.date > row.latestInvoiceDate) row.latestInvoiceDate = inv.date;
-    map.set(key, row);
+  // Track patients who have a non-completed appointment with a doctor and NO completed one
+  const completedKeys = new Set<string>();
+  const nonCompletedKeys = new Set<string>();
+  const norm = (s?: string) => (s || '').trim().toLowerCase();
+
+  for (const appt of allAppointments) {
+    const doc = norm(appt.doctorNameEn);
+    const idKey = appt.patientId ? `${appt.branchCode}:${doc}:id:${norm(appt.patientId)}` : '';
+    const nameKey = appt.patientName ? `${appt.branchCode}:${doc}:name:${norm(appt.patientName)}` : '';
+    if (appt.status === 'COMPLETED') {
+      if (idKey) completedKeys.add(idKey);
+      if (nameKey) completedKeys.add(nameKey);
+    } else {
+      if (idKey) nonCompletedKeys.add(idKey);
+      if (nameKey) nonCompletedKeys.add(nameKey);
+    }
   }
 
+  const map = new Map<string, DoctorSalaryRow>();
   for (const appt of completed) {
     const key = `${appt.branchCode}:${appt.doctorNameEn}`;
     const existing = map.get(key);
     if (existing) {
       existing.completedAppointments += 1;
+      if (appt.date && appt.date > existing.latestInvoiceDate) {
+        existing.latestInvoiceDate = appt.date;
+      }
     } else {
       map.set(key, {
         doctorEn: appt.doctorNameEn,
@@ -134,6 +136,25 @@ export function computeDoctorSalaryRows(
         latestInvoiceDate: appt.date || clinicTodayISO(),
       });
     }
+  }
+
+  for (const inv of invoices) {
+    const key = `${inv.branch}:${inv.doctorEn}`;
+    const row = map.get(key);
+    // Only count invoices for doctors with completed appointments, and skip any invoice
+    // tied to a confirmed/arrived/cancelled/no-show appointment that is not completed.
+    if (!row || row.completedAppointments === 0) continue;
+    const doc = norm(inv.doctorEn);
+    const idKey = inv.patientId ? `${inv.branch}:${doc}:id:${norm(inv.patientId)}` : '';
+    const nameKey = inv.patientNameEn ? `${inv.branch}:${doc}:name:${norm(inv.patientNameEn)}` : '';
+    const hasUncompletedOnly =
+      (idKey && nonCompletedKeys.has(idKey) && !completedKeys.has(idKey)) ||
+      (nameKey && nonCompletedKeys.has(nameKey) && !completedKeys.has(nameKey));
+    if (hasUncompletedOnly) continue;
+
+    row.invoiceCount += 1;
+    row.totalInvoicedEgp += inv.totalAmount;
+    if (inv.date > row.latestInvoiceDate) row.latestInvoiceDate = inv.date;
   }
 
   return Array.from(map.values())
