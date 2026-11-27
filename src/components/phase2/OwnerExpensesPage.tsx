@@ -103,6 +103,14 @@ export default function OwnerExpensesPage({
     };
   }, []);
 
+  const [branchFilter, setBranchFilter] = useState<"ALL" | "BR-A" | "BR-B" | "BR-C">(
+    branchCode
+  );
+  const scopedToBranch = branchCode !== "ALL";
+  useEffect(() => {
+    setBranchFilter(branchCode);
+  }, [branchCode]);
+
   const doctorSalaryRows = useMemo(
     () => computeDoctorSalaryRows(branchFilter),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,14 +122,6 @@ export default function OwnerExpensesPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [entries, salaryTick]
   );
-
-  const [branchFilter, setBranchFilter] = useState<"ALL" | "BR-A" | "BR-B" | "BR-C">(
-    branchCode
-  );
-  const scopedToBranch = branchCode !== "ALL";
-  useEffect(() => {
-    setBranchFilter(branchCode);
-  }, [branchCode]);
   const [period, setPeriod] = useState<"this_month" | "last_month" | "quarter" | "custom">(
     "this_month"
   );
