@@ -426,22 +426,21 @@ export default function StatisticsAndReportsPhaseThree({
               <option value="all">{isAr ? "كل الفترات" : "All Time"}</option>
             </select>
 
-            <select
-              aria-label={isAr ? "الطبيب" : "Dentist"}
-              value={dentistFilter}
-              disabled={role === "doctor"}
-              onChange={(e) => setDentistFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700 disabled:bg-slate-50 disabled:text-slate-600"
-            >
-              {role !== "doctor" && (
+            {role !== "doctor" && (
+              <select
+                aria-label={isAr ? "الطبيب" : "Dentist"}
+                value={dentistFilter}
+                onChange={(e) => setDentistFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700"
+              >
                 <option value="ALL">{isAr ? "كل الأطباء" : "All Dentists"}</option>
-              )}
-              {branchDentists.map((d) => (
-                <option key={d.id} value={d.nameEn}>
-                  {isAr ? d.nameAr : d.nameEn}
-                </option>
-              ))}
-            </select>
+                {branchDentists.map((d) => (
+                  <option key={d.id} value={d.nameEn}>
+                    {isAr ? d.nameAr : d.nameEn}
+                  </option>
+                ))}
+              </select>
+            )}
 
             <select
               aria-label={isAr ? "الخدمة" : "Service"}
