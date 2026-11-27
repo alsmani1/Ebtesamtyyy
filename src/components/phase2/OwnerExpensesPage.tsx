@@ -19,6 +19,12 @@ import {
   type ExpenseLedgerEntry,
   type FinanceBranch,
 } from "@/lib/clinic-costs";
+import {
+  computeDoctorSalaryRows,
+  doctorSalaryExpenseEntries,
+  SHARED_INVOICES_EVENT,
+} from "@/lib/finance-storage";
+import { APPOINTMENTS_EVENT } from "@/lib/appointments-db";
 
 export { EXPENSE_CATEGORIES, SHARED_EXPENSES_EVENT, SHARED_EXPENSES_KEY };
 export type { ExpenseCategory, ExpenseLedgerEntry };
@@ -82,6 +88,32 @@ export default function OwnerExpensesPage({
   const { language } = useLanguage();
   const isAr = language === "ar";
   const { entries, setEntries } = useSharedExpenses();
+  const [salaryTick, setSalaryTick] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const bump = () => setSalaryTick((t) => t + 1);
+    window.addEventListener("storage", bump);
+    window.addEventListener(SHARED_INVOICES_EVENT, bump);
+    window.addEventListener(APPOINTMENTS_EVENT, bump);
+    return () => {
+      window.removeEventListener("storage", bump);
+      window.removeEventListener(SHARED_INVOICES_EVENT, bump);
+      window.removeEventListener(APPOINTMENTS_EVENT, bump);
+    };
+  }, []);
+
+  const doctorSalaryRows = useMemo(
+    () => computeDoctorSalaryRows(branchFilter),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [branchFilter, salaryTick]
+  );
+
+  const allEntries = useMemo(
+    () => [...doctorSalaryExpenseEntries("ALL"), ...entries],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entries, salaryTick]
+  );
 
   const [branchFilter, setBranchFilter] = useState<"ALL" | "BR-A" | "BR-B" | "BR-C">(
     branchCode
@@ -121,11 +153,11 @@ export default function OwnerExpensesPage({
 
   const filtered = useMemo(
     () =>
-      entries
+      allEntries
         .filter((e) => inRange(e, periodRange(period)) && matchesBranchCat(e))
         .sort((a, b) => (a.date < b.date ? 1 : -1)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [entries, period, fromDate, toDate, branchFilter, categoryFilter]
+    [allEntries, period, fromDate, toDate, branchFilter, categoryFilter]
   );
 
   // Hard RBAC: Clinic Owner only
@@ -154,7 +186,7 @@ export default function OwnerExpensesPage({
 
   // Month-over-month on selected branch/category filters
   const monthTotal = (m: string) =>
-    entries
+    allEntries
       .filter((e) => e.date.startsWith(m) && matchesBranchCat(e))
       .reduce((s, e) => s + e.amountEgp, 0);
   const monthTrend = MONTHS.map((m) => ({ m, value: monthTotal(m) }));
@@ -174,7 +206,7 @@ export default function OwnerExpensesPage({
     : BRANCHES
   ).map((b) => ({
     ...b,
-    value: entries
+    value: allEntries
       .filter(
         (e) =>
           e.branchCode === b.code &&
@@ -460,6 +492,57 @@ export default function OwnerExpensesPage({
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Doctor Salaries Breakdown (40% of Invoices) */}
+      <div className="rounded-3xl border border-emerald-200/80 bg-white p-6 shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-base font-black text-slate-900">
+              {isAr
+                ? "رواتب الأطباء (40% من الفواتير)"
+                : "Doctor Salaries (40% of Invoices)"}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {isAr
+                ? "تُحتسب تلقائياً بنسبة 40% من إجمالي فواتير كل طبيب وتُضاف إلى مصروفات رواتب الفريق"
+                : "Calculated automatically as 40% of each doctor's invoices and included under Staff Salaries"}
+            </p>
+          </div>
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700 tabular-nums">
+            {fmt(doctorSalaryRows.reduce((s, r) => s + r.salaryEgp, 0))}{" "}
+            {isAr ? "ج.م" : "EGP"}
+          </span>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {doctorSalaryRows.map((row) => (
+            <div
+              key={`${row.branch}-${row.doctorEn}`}
+              className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 flex items-center justify-between gap-3"
+            >
+              <div>
+                <div className="text-sm font-black text-slate-900">
+                  {isAr ? row.doctorAr : row.doctorEn}
+                </div>
+                <div className="text-[11px] font-semibold text-slate-500">
+                  {branchName(row.branch)} · {row.completedAppointments}{" "}
+                  {isAr ? "موعد مكتمل" : "done"} · {row.invoiceCount}{" "}
+                  {isAr ? "فاتورة" : "invoices"}
+                </div>
+                <div className="text-[11px] text-slate-400 tabular-nums mt-0.5">
+                  {isAr ? "إجمالي الفواتير:" : "Invoiced:"} EGP{" "}
+                  {fmt(row.totalInvoicedEgp)}
+                </div>
+              </div>
+              <div className="text-end tabular-nums">
+                <span className="text-base font-black text-emerald-700 block">
+                  {fmt(row.salaryEgp)} {isAr ? "ج.م" : "EGP"}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">40%</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

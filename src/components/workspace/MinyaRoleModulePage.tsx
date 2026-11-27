@@ -1814,7 +1814,11 @@ function MinyaRoleModulePageInner({
       {/* 15. STATISTICS AND REPORTS */}
       {moduleSlug === "reports" && (
         <div className="space-y-8">
-          <StatisticsAndReportsPhaseThree role={role} branchCode={activeBranchCode} />
+          <StatisticsAndReportsPhaseThree
+            role={role}
+            branchCode={activeBranchCode}
+            doctorNameEn={role === "doctor" ? identity.fullName : undefined}
+          />
           {role === "doctor" && (
             <WebsiteReviewsPhaseThree
               role={role}

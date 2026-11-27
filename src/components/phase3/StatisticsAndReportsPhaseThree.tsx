@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   BarChart3,
@@ -29,6 +29,8 @@ import {
   serviceProfitRows,
 } from "@/lib/clinic-finance";
 import type { FinanceBranch } from "@/lib/clinic-costs";
+import { computeDoctorSalaryRows, SHARED_INVOICES_EVENT } from "@/lib/finance-storage";
+import { APPOINTMENTS_EVENT } from "@/lib/appointments-db";
 import { listPatients } from "@/lib/patients-db";
 import { INITIAL_LAB_ORDERS, type LabOrderRecord } from "../phase2/LabManagementPhaseTwo";
 import { INITIAL_INVENTORY_ITEMS } from "../phase2/InventorySuppliesPhaseTwo";
@@ -52,12 +54,33 @@ interface CustomPinnedIndicator {
 export default function StatisticsAndReportsPhaseThree({
   role = "clinic_owner",
   branchCode = "ALL",
+  doctorNameEn,
 }: {
   role?: Phase2Role;
   branchCode?: FinanceBranch | "ALL";
+  doctorNameEn?: string;
 }) {
   const { language } = useLanguage();
   const isAr = language === "ar";
+  const [, setSalarySyncTick] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const bump = () => setSalarySyncTick((t) => t + 1);
+    window.addEventListener("storage", bump);
+    window.addEventListener(SHARED_INVOICES_EVENT, bump);
+    window.addEventListener(APPOINTMENTS_EVENT, bump);
+    return () => {
+      window.removeEventListener("storage", bump);
+      window.removeEventListener(SHARED_INVOICES_EVENT, bump);
+      window.removeEventListener(APPOINTMENTS_EVENT, bump);
+    };
+  }, []);
+
+  const doctorSalaryRows = computeDoctorSalaryRows(branchCode);
+  const mySalaryRow = doctorNameEn
+    ? doctorSalaryRows.find((r) => r.doctorEn === doctorNameEn) || doctorSalaryRows[0]
+    : doctorSalaryRows[0];
 
   const branchLabel =
     branchCode === "ALL"
@@ -403,6 +426,34 @@ export default function StatisticsAndReportsPhaseThree({
             </>
           )}
 
+          {role === "doctor" && mySalaryRow && (
+            <div className="sm:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-2xs flex flex-col justify-between">
+              <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+                <span>
+                  {isAr
+                    ? "راتبي (40% من الفواتير المكتملة)"
+                    : "My Salary (40% of Invoices)"}
+                </span>
+                <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-black text-emerald-700 border border-emerald-200">
+                  {isAr ? mySalaryRow.doctorAr : mySalaryRow.doctorEn}
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1.5 tabular-nums">
+                <span className="text-2xl font-black text-emerald-950">
+                  {mySalaryRow.salaryEgp.toLocaleString()}
+                </span>
+                <span className="text-xs font-bold text-emerald-700">
+                  {isAr ? "ج.م" : "EGP"}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] font-semibold text-emerald-800">
+                {isAr
+                  ? `${mySalaryRow.completedAppointments} موعد مكتمل · ${mySalaryRow.invoiceCount} فاتورة (40% × ${mySalaryRow.totalInvoicedEgp.toLocaleString()} ج.م)`
+                  : `${mySalaryRow.completedAppointments} completed appointments · ${mySalaryRow.invoiceCount} invoices (40% × EGP ${mySalaryRow.totalInvoicedEgp.toLocaleString()})`}
+              </p>
+            </div>
+          )}
+
           {/* Card: completion rate */}
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
             <div className="flex items-center justify-between text-xs font-bold text-slate-500">
@@ -555,7 +606,11 @@ export default function StatisticsAndReportsPhaseThree({
               {isAr ? "أداء الأطباء" : "Dentist performance"}
             </div>
             <div className="mt-2.5 space-y-2.5">
-              {doctorPerformance(0, branchCode).map((doc, idx) => (
+              {doctorPerformance(0, branchCode).map((doc, idx) => {
+                const salRow = doctorSalaryRows.find((r) => r.doctorEn === doc.nameEn);
+                const docSalary = salRow?.salaryEgp ?? Math.round(doc.invoiced * 0.4);
+                const isOwnRow = role === "doctor" && (!doctorNameEn || doc.nameEn === doctorNameEn);
+                return (
                 <div
                   key={doc.doctorId}
                   className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 py-3"
@@ -579,13 +634,25 @@ export default function StatisticsAndReportsPhaseThree({
                       </div>
                     </div>
                   </div>
-                  <span className="text-sm font-black text-slate-900 tabular-nums">
-                    {canSeeFinancialIndicators
-                      ? `EGP ${doc.invoiced.toLocaleString()}`
-                      : `${doc.cases} ${isAr ? "حالة" : "cases"}`}
-                  </span>
+                  <div className="text-end tabular-nums">
+                    <span className="text-sm font-black text-slate-900 block">
+                      {canSeeFinancialIndicators
+                        ? `EGP ${doc.invoiced.toLocaleString()}`
+                        : isOwnRow
+                        ? `EGP ${docSalary.toLocaleString()}`
+                        : `${doc.cases} ${isAr ? "حالة" : "cases"}`}
+                    </span>
+                    {(canSeeFinancialIndicators || isOwnRow) && (
+                      <span className="text-[11px] font-bold text-emerald-700">
+                        {isAr
+                          ? `الراتب (40%): ${docSalary.toLocaleString()} ج.م`
+                          : `40% Salary: EGP ${docSalary.toLocaleString()}`}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
