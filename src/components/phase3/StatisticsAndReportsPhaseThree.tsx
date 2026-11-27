@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
   BarChart3,
@@ -19,7 +19,13 @@ import {
 } from "lucide-react";
 import type { Phase2Role } from "../phase2/FinanceCenterPhaseTwo";
 import { getMinyaBranchMetrics, MINYA_BRANCHES } from "@/config/minya-clinic-store";
-import { clinicDateISO, clinicDateText, clinicMonthStartISO, clinicTodayISO } from "@/lib/clinic-clock";
+import {
+  clinicDateISO,
+  clinicDateText,
+  clinicMonthEndISO,
+  clinicMonthStartISO,
+  clinicTodayISO,
+} from "@/lib/clinic-clock";
 import {
   branchPatientStats,
   doctorPerformance,
@@ -29,8 +35,8 @@ import {
   serviceProfitRows,
 } from "@/lib/clinic-finance";
 import type { FinanceBranch } from "@/lib/clinic-costs";
-import { computeDoctorSalaryRows, SHARED_INVOICES_EVENT } from "@/lib/finance-storage";
-import { APPOINTMENTS_EVENT } from "@/lib/appointments-db";
+import { computeDoctorSalaryRows, listSharedInvoices, SHARED_INVOICES_EVENT } from "@/lib/finance-storage";
+import { APPOINTMENTS_EVENT, listAppointments } from "@/lib/appointments-db";
 import { listPatients } from "@/lib/patients-db";
 import { INITIAL_LAB_ORDERS, type LabOrderRecord } from "../phase2/LabManagementPhaseTwo";
 import { INITIAL_INVENTORY_ITEMS } from "../phase2/InventorySuppliesPhaseTwo";
@@ -62,7 +68,19 @@ export default function StatisticsAndReportsPhaseThree({
 }) {
   const { language } = useLanguage();
   const isAr = language === "ar";
-  const [, setSalarySyncTick] = useState(0);
+  const [salarySyncTick, setSalarySyncTick] = useState(0);
+  const [periodFilter, setPeriodFilter] = useState<"today" | "week" | "this_month" | "last_month" | "all">("this_month");
+  const [dentistFilter, setDentistFilter] = useState<string>(
+    role === "doctor" && doctorNameEn ? doctorNameEn : "ALL"
+  );
+  const [serviceFilter, setServiceFilter] = useState<string>("ALL");
+  const [sourceFilter, setSourceFilter] = useState<string>("ALL");
+
+  useEffect(() => {
+    if (role === "doctor" && doctorNameEn) {
+      setDentistFilter(doctorNameEn);
+    }
+  }, [role, doctorNameEn]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -77,10 +95,110 @@ export default function StatisticsAndReportsPhaseThree({
     };
   }, []);
 
+  const periodRange = useMemo((): [string, string] => {
+    const today = clinicTodayISO();
+    if (periodFilter === "today") return [today, today];
+    if (periodFilter === "week") return [clinicDateISO(-6), today];
+    if (periodFilter === "this_month") return [clinicMonthStartISO(0), clinicMonthEndISO(0)];
+    if (periodFilter === "last_month") return [clinicMonthStartISO(-1), clinicMonthEndISO(-1)];
+    return ["2000-01-01", "2099-12-31"];
+  }, [periodFilter]);
+
+  const branchDentists = useMemo(() => {
+    const branches =
+      branchCode === "ALL"
+        ? MINYA_BRANCHES
+        : MINYA_BRANCHES.filter((b) => b.code === branchCode);
+    return branches.flatMap((b) => b.doctors);
+  }, [branchCode]);
+
+  const allBranchAppointments = useMemo(
+    () =>
+      listAppointments().filter(
+        (appt) => branchCode === "ALL" || appt.branchCode === branchCode
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [branchCode, salarySyncTick]
+  );
+
+  const serviceOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const appt of allBranchAppointments) {
+      if (appt.serviceEn) set.add(appt.serviceEn);
+    }
+    return Array.from(set).sort();
+  }, [allBranchAppointments]);
+
+  const filteredAppointments = useMemo(
+    () =>
+      allBranchAppointments.filter((appt) => {
+        if (appt.date < periodRange[0] || appt.date > periodRange[1]) return false;
+        if (dentistFilter !== "ALL" && appt.doctorNameEn !== dentistFilter) return false;
+        if (serviceFilter !== "ALL" && appt.serviceEn !== serviceFilter) return false;
+        return true;
+      }),
+    [allBranchAppointments, periodRange, dentistFilter, serviceFilter]
+  );
+
   const doctorSalaryRows = computeDoctorSalaryRows(branchCode);
-  const mySalaryRow = doctorNameEn
-    ? doctorSalaryRows.find((r) => r.doctorEn === doctorNameEn) || doctorSalaryRows[0]
+  const activeDentistName =
+    role === "doctor"
+      ? doctorNameEn || dentistFilter
+      : dentistFilter !== "ALL"
+      ? dentistFilter
+      : undefined;
+  const mySalaryRow = activeDentistName
+    ? doctorSalaryRows.find((r) => r.doctorEn === activeDentistName) ||
+      {
+        doctorEn: activeDentistName,
+        doctorAr:
+          branchDentists.find((d) => d.nameEn === activeDentistName)?.nameAr ||
+          activeDentistName,
+        branch: (branchCode === "ALL" ? "BR-A" : branchCode) as FinanceBranch,
+        completedAppointments: filteredAppointments.filter(
+          (a) => a.status === "COMPLETED" && a.doctorNameEn === activeDentistName
+        ).length,
+        invoiceCount: 0,
+        totalInvoicedEgp: 0,
+        salaryEgp: 0,
+        latestInvoiceDate: clinicTodayISO(),
+      }
     : doctorSalaryRows[0];
+
+  const scopedInvoices = useMemo(
+    () =>
+      listSharedInvoices().filter((inv) => {
+        if (branchCode !== "ALL" && inv.branch !== branchCode) return false;
+        if (inv.date < periodRange[0] || inv.date > periodRange[1]) return false;
+        if (dentistFilter !== "ALL" && inv.doctorEn !== dentistFilter) return false;
+        if (
+          serviceFilter !== "ALL" &&
+          !inv.treatmentEn.toLowerCase().includes(serviceFilter.toLowerCase())
+        ) {
+          return false;
+        }
+        return true;
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [branchCode, periodRange, dentistFilter, serviceFilter, salarySyncTick]
+  );
+
+  const scopedSalaryEgp = useMemo(() => {
+    if (!activeDentistName) return 0;
+    const completedCount = filteredAppointments.filter(
+      (a) => a.status === "COMPLETED" && a.doctorNameEn === activeDentistName
+    ).length;
+    if (completedCount === 0) return 0;
+    if (
+      periodFilter === "this_month" &&
+      serviceFilter === "ALL" &&
+      mySalaryRow
+    ) {
+      return mySalaryRow.salaryEgp;
+    }
+    const invoiced = scopedInvoices.reduce((s, inv) => s + inv.totalAmount, 0);
+    return Math.round(invoiced * 0.4);
+  }, [activeDentistName, filteredAppointments, periodFilter, serviceFilter, mySalaryRow, scopedInvoices]);
 
   const branchLabel =
     branchCode === "ALL"
@@ -123,14 +241,18 @@ export default function StatisticsAndReportsPhaseThree({
     (item) => item.status === "low" || item.status === "out"
   ).length;
   const branchLeads = INITIAL_CRM_LEADS.filter(
-    (lead) => branchCode === "ALL" || lead.branchCode === branchCode
+    (lead) =>
+      (branchCode === "ALL" || lead.branchCode === branchCode) &&
+      (sourceFilter === "ALL" || lead.sourceAr === sourceFilter)
   );
   const leadsFollowing = branchLeads.filter(
     (lead) => lead.stage !== "converted" && lead.stage !== "not_interested"
   ).length;
-  const branchPatients = listPatients().filter(
-    (patient) => branchCode === "ALL" || patient.branchCode === branchCode
-  );
+  const branchPatients = listPatients().filter((patient) => {
+    if (branchCode !== "ALL" && patient.branchCode !== branchCode) return false;
+    if (dentistFilter !== "ALL") return patient.primaryDoctorEn === dentistFilter;
+    return true;
+  });
   const ageBuckets = [
     { label: "<18", min: 0, max: 17 },
     { label: "18–27", min: 18, max: 27 },
@@ -162,9 +284,33 @@ export default function StatisticsAndReportsPhaseThree({
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
   const maxSourceCount = Math.max(1, ...sourceCounts.map((source) => source.count));
-  const completionRate = branchMetrics.completionRatePercent;
-  const noShowRate = branchMetrics.noShowRatePercent;
-  const retentionPct = patientStats.activePatients
+  const totalScopedAppts = filteredAppointments.length;
+  const completedScopedAppts = filteredAppointments.filter(
+    (a) => a.status === "COMPLETED"
+  ).length;
+  const cancelledOrNoShowAppts = filteredAppointments.filter(
+    (a) => a.status === "NO_SHOW" || a.status === "CANCELLED"
+  ).length;
+  const todayScopedAppts = allBranchAppointments.filter(
+    (a) =>
+      a.date === clinicTodayISO() &&
+      (dentistFilter === "ALL" || a.doctorNameEn === dentistFilter) &&
+      (serviceFilter === "ALL" || a.serviceEn === serviceFilter)
+  ).length;
+  const completionRate = totalScopedAppts
+    ? Math.round((completedScopedAppts / totalScopedAppts) * 100)
+    : 0;
+  const noShowRate = totalScopedAppts
+    ? Math.round((cancelledOrNoShowAppts / totalScopedAppts) * 100)
+    : 0;
+  const scopedReturningPatients = branchPatients.filter((p) => p.visitsCount > 1).length;
+  const scopedNewPatients =
+    dentistFilter === "ALL" && periodFilter === "this_month"
+      ? patientStats.newPatients
+      : branchPatients.filter((p) => p.visitsCount <= 1).length;
+  const retentionPct = branchPatients.length
+    ? Math.round((scopedReturningPatients / branchPatients.length) * 100)
+    : patientStats.activePatients
     ? Math.round((patientStats.returningPatients / patientStats.activePatients) * 100)
     : 0;
 
@@ -232,8 +378,8 @@ export default function StatisticsAndReportsPhaseThree({
               : kpis.monthCollected
             ).toLocaleString()}`
           : builderData === "appointments"
-          ? `${builderPeriod === "today" ? kpis.todayInvoices : builderPeriod === "week" ? weekVisits : kpis.monthInvoiceCount} visits`
-          : `${kpis.activePatients} patients`,
+          ? `${builderPeriod === "today" ? todayScopedAppts : completedScopedAppts} visits`
+          : `${branchPatients.length} patients`,
       conditionAr: `البيانات: ${builderData} · الشرط: ${builderCondition}`,
       conditionEn: `Data: ${builderData} · Condition: ${builderCondition}`,
       isFinancial: isFin,
@@ -267,18 +413,64 @@ export default function StatisticsAndReportsPhaseThree({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-            <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700">
-              {isAr ? "هذا الشهر" : "This Month"} ▾
-            </span>
-            <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700">
-              {isAr ? "كل الأطباء" : "All Dentists"} ▾
-            </span>
-            <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700">
-              {isAr ? "كل الخدمات" : "All Services"} ▾
-            </span>
-            <span className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700">
-              {isAr ? "كل المصادر" : "All Sources"} ▾
-            </span>
+            <select
+              aria-label={isAr ? "الفترة" : "Period"}
+              value={periodFilter}
+              onChange={(e) => setPeriodFilter(e.target.value as typeof periodFilter)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700"
+            >
+              <option value="today">{isAr ? "اليوم" : "Today"}</option>
+              <option value="week">{isAr ? "هذا الأسبوع" : "This Week"}</option>
+              <option value="this_month">{isAr ? "هذا الشهر" : "This Month"}</option>
+              <option value="last_month">{isAr ? "الشهر الماضي" : "Last Month"}</option>
+              <option value="all">{isAr ? "كل الفترات" : "All Time"}</option>
+            </select>
+
+            <select
+              aria-label={isAr ? "الطبيب" : "Dentist"}
+              value={dentistFilter}
+              disabled={role === "doctor"}
+              onChange={(e) => setDentistFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700 disabled:bg-slate-50 disabled:text-slate-600"
+            >
+              {role !== "doctor" && (
+                <option value="ALL">{isAr ? "كل الأطباء" : "All Dentists"}</option>
+              )}
+              {branchDentists.map((d) => (
+                <option key={d.id} value={d.nameEn}>
+                  {isAr ? d.nameAr : d.nameEn}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label={isAr ? "الخدمة" : "Service"}
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700"
+            >
+              <option value="ALL">{isAr ? "كل الخدمات" : "All Services"}</option>
+              {serviceOptions.map((svc) => (
+                <option key={svc} value={svc}>
+                  {svc}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label={isAr ? "المصدر" : "Source"}
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-slate-700"
+            >
+              <option value="ALL">{isAr ? "كل المصادر" : "All Sources"}</option>
+              <option value="واتساب">WhatsApp</option>
+              <option value="الموقع">Website</option>
+              <option value="إنستجرام">Instagram</option>
+              <option value="فيسبوك">Facebook</option>
+              <option value="جوجل">Google</option>
+            </select>
+
             <button
               type="button"
               onClick={() => typeof window !== "undefined" && window.print()}
@@ -298,7 +490,7 @@ export default function StatisticsAndReportsPhaseThree({
           </span>
 
           <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700 tabular-nums">
-            {isAr ? `مواعيد اليوم ${kpis.todayInvoices}` : `Today's visits ${kpis.todayInvoices}`}
+            {isAr ? `مواعيد اليوم ${todayScopedAppts}` : `Today's visits ${todayScopedAppts}`}
           </span>
 
           {canSeeFinancialIndicators && (
@@ -432,7 +624,7 @@ export default function StatisticsAndReportsPhaseThree({
                 <span>
                   {isAr
                     ? "راتبي (40% من الفواتير المكتملة)"
-                    : "My Salary (40% of Invoices)"}
+                    : "My Salary (40% of Completed Invoices)"}
                 </span>
                 <span className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-black text-emerald-700 border border-emerald-200">
                   {isAr ? mySalaryRow.doctorAr : mySalaryRow.doctorEn}
@@ -440,7 +632,7 @@ export default function StatisticsAndReportsPhaseThree({
               </div>
               <div className="mt-2 flex items-baseline gap-1.5 tabular-nums">
                 <span className="text-2xl font-black text-emerald-950">
-                  {mySalaryRow.salaryEgp.toLocaleString()}
+                  {scopedSalaryEgp.toLocaleString()}
                 </span>
                 <span className="text-xs font-bold text-emerald-700">
                   {isAr ? "ج.م" : "EGP"}
@@ -448,8 +640,8 @@ export default function StatisticsAndReportsPhaseThree({
               </div>
               <p className="mt-1 text-[11px] font-semibold text-emerald-800">
                 {isAr
-                  ? `${mySalaryRow.completedAppointments} موعد مكتمل · ${mySalaryRow.invoiceCount} فاتورة (40% × ${mySalaryRow.totalInvoicedEgp.toLocaleString()} ج.م)`
-                  : `${mySalaryRow.completedAppointments} completed appointments · ${mySalaryRow.invoiceCount} invoices (40% × EGP ${mySalaryRow.totalInvoicedEgp.toLocaleString()})`}
+                  ? `${completedScopedAppts} موعد مكتمل من ${totalScopedAppts} · ${mySalaryRow.invoiceCount} فاتورة (40% × ${mySalaryRow.totalInvoicedEgp.toLocaleString()} ج.م)`
+                  : `${completedScopedAppts} completed of ${totalScopedAppts} visits · ${mySalaryRow.invoiceCount} invoices (40% × EGP ${mySalaryRow.totalInvoicedEgp.toLocaleString()})`}
               </p>
             </div>
           )}
@@ -465,8 +657,8 @@ export default function StatisticsAndReportsPhaseThree({
             <div className="mt-2 text-2xl font-black text-slate-900 tabular-nums">{completionRate}%</div>
             <div className="mt-2 text-[11px] text-slate-400">
               {isAr
-                ? `${kpis.todayInvoices} موعد اليوم · حسب سجل الفرع`
-                : `${kpis.todayInvoices} visits today · branch ledger`}
+                ? `${completedScopedAppts} مكتمل من ${totalScopedAppts} موعد`
+                : `${completedScopedAppts} completed of ${totalScopedAppts} visits`}
             </div>
             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div className="h-full rounded-full bg-teal-600" style={{ width: `${completionRate}%` }} />
@@ -484,8 +676,8 @@ export default function StatisticsAndReportsPhaseThree({
             <div className="mt-2 text-2xl font-black text-slate-900 tabular-nums">{noShowRate}%</div>
             <div className="mt-2 text-[11px] text-slate-400">
               {isAr
-                ? `${kpis.todayInvoices} موعد اليوم · ${noShowRate}% لم يحضر`
-                : `${kpis.todayInvoices} visits today · ${noShowRate}% no-show`}
+                ? `${cancelledOrNoShowAppts} من ${totalScopedAppts} موعد`
+                : `${cancelledOrNoShowAppts} of ${totalScopedAppts} visits`}
             </div>
             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div className="h-full rounded-full bg-rose-500" style={{ width: `${noShowRate}%` }} />
@@ -500,9 +692,9 @@ export default function StatisticsAndReportsPhaseThree({
                 {isAr ? `${branchPatients.length} ملف` : `${branchPatients.length} files`}
               </span>
             </div>
-            <div className="mt-2 text-2xl font-black text-slate-900 tabular-nums">{patientStats.newPatients}</div>
+            <div className="mt-2 text-2xl font-black text-slate-900 tabular-nums">{scopedNewPatients}</div>
             <div className="mt-2 text-[11px] text-slate-400">
-              {isAr ? "خلال هذا الشهر" : "During this month"}
+              {isAr ? "ضمن النطاق المحدد" : "In selected scope"}
             </div>
           </div>
 
@@ -514,8 +706,8 @@ export default function StatisticsAndReportsPhaseThree({
             <div className="mt-2 text-2xl font-black text-slate-900 tabular-nums">{retentionPct}%</div>
             <div className="mt-2 text-[11px] text-slate-400">
               {isAr
-                ? `${patientStats.returningPatients} عائد من ${patientStats.activePatients} نشط`
-                : `${patientStats.returningPatients} returning of ${patientStats.activePatients} active`}
+                ? `${scopedReturningPatients} عائد من ${branchPatients.length} ملف`
+                : `${scopedReturningPatients} returning of ${branchPatients.length} files`}
             </div>
             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div className="h-full rounded-full bg-purple-600" style={{ width: `${retentionPct}%` }} />
@@ -606,9 +798,11 @@ export default function StatisticsAndReportsPhaseThree({
               {isAr ? "أداء الأطباء" : "Dentist performance"}
             </div>
             <div className="mt-2.5 space-y-2.5">
-              {doctorPerformance(0, branchCode).map((doc, idx) => {
+              {doctorPerformance(0, branchCode)
+                .filter((doc) => dentistFilter === "ALL" || doc.nameEn === dentistFilter)
+                .map((doc, idx) => {
                 const salRow = doctorSalaryRows.find((r) => r.doctorEn === doc.nameEn);
-                const docSalary = salRow?.salaryEgp ?? Math.round(doc.invoiced * 0.4);
+                const docSalary = salRow?.salaryEgp ?? 0;
                 const isOwnRow = role === "doctor" && (!doctorNameEn || doc.nameEn === doctorNameEn);
                 return (
                 <div
