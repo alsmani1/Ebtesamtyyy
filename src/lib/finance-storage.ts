@@ -87,15 +87,32 @@ export interface DoctorSalaryRow {
 }
 
 export function computeDoctorSalaryRows(
-  branch: FinanceBranch | 'ALL' = 'ALL'
+  branch: FinanceBranch | 'ALL' = 'ALL',
+  dateRange?: [string, string],
+  serviceFilter?: string
 ): DoctorSalaryRow[] {
+  const inRange = (d: string) =>
+    !dateRange || (d >= dateRange[0] && d <= dateRange[1]);
+  const matchesService = (text?: string) =>
+    !serviceFilter ||
+    serviceFilter === 'ALL' ||
+    (text || '').toLowerCase().includes(serviceFilter.toLowerCase());
+
   const invoices = listSharedInvoices().filter(
-    (inv) => branch === 'ALL' || inv.branch === branch
+    (inv) =>
+      (branch === 'ALL' || inv.branch === branch) &&
+      inRange(inv.date) &&
+      matchesService(inv.treatmentEn)
   );
   const allAppointments = listAppointments().filter(
     (appt) => branch === 'ALL' || appt.branchCode === branch
   );
-  const completed = allAppointments.filter((appt) => appt.status === 'COMPLETED');
+  const completed = allAppointments.filter(
+    (appt) =>
+      appt.status === 'COMPLETED' &&
+      inRange(appt.date) &&
+      matchesService(appt.serviceEn)
+  );
 
   // Track patients who have a non-completed appointment with a doctor and NO completed one
   const completedKeys = new Set<string>();
@@ -161,20 +178,11 @@ export function computeDoctorSalaryRows(
   for (const [key, list] of eligibleByDoctor.entries()) {
     const row = map.get(key);
     if (!row) continue;
-    // Prefer invoices whose patient matches a completed appointment first
+    // Sort newest first so shorter recent periods (Today / This Week) are always
+    // a subset of longer accumulated periods (This Month / All Time).
     const prioritized = [...list].sort((a, b) => {
-      const doc = norm(row.doctorEn);
-      const aMatch =
-        (a.patientId && completedKeys.has(`${row.branch}:${doc}:id:${norm(a.patientId)}`)) ||
-        (a.patientNameEn && completedKeys.has(`${row.branch}:${doc}:name:${norm(a.patientNameEn)}`))
-          ? 1
-          : 0;
-      const bMatch =
-        (b.patientId && completedKeys.has(`${row.branch}:${doc}:id:${norm(b.patientId)}`)) ||
-        (b.patientNameEn && completedKeys.has(`${row.branch}:${doc}:name:${norm(b.patientNameEn)}`))
-          ? 1
-          : 0;
-      return bMatch - aMatch;
+      if (a.date !== b.date) return b.date.localeCompare(a.date);
+      return b.totalAmount - a.totalAmount;
     });
     const counted = prioritized.slice(0, row.completedAppointments);
     for (const inv of counted) {

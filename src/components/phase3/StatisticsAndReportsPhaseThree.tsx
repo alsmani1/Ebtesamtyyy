@@ -36,7 +36,7 @@ import {
   serviceProfitRows,
 } from "@/lib/clinic-finance";
 import type { FinanceBranch } from "@/lib/clinic-costs";
-import { computeDoctorSalaryRows, listSharedInvoices, SHARED_INVOICES_EVENT } from "@/lib/finance-storage";
+import { computeDoctorSalaryRows, SHARED_INVOICES_EVENT } from "@/lib/finance-storage";
 import { APPOINTMENTS_EVENT, listAppointments } from "@/lib/appointments-db";
 import { listPatients } from "@/lib/patients-db";
 import { INITIAL_LAB_ORDERS, type LabOrderRecord } from "../phase2/LabManagementPhaseTwo";
@@ -141,7 +141,7 @@ export default function StatisticsAndReportsPhaseThree({
     [allBranchAppointments, periodRange, dentistFilter, serviceFilter]
   );
 
-  const doctorSalaryRows = computeDoctorSalaryRows(branchCode);
+  const doctorSalaryRows = computeDoctorSalaryRows(branchCode, periodRange, serviceFilter);
   const activeDentistName =
     role === "doctor"
       ? doctorNameEn || dentistFilter
@@ -166,45 +166,16 @@ export default function StatisticsAndReportsPhaseThree({
       }
     : doctorSalaryRows[0];
 
-  const scopedInvoices = useMemo(
-    () =>
-      listSharedInvoices().filter((inv) => {
-        if (branchCode !== "ALL" && inv.branch !== branchCode) return false;
-        if (inv.date < periodRange[0] || inv.date > periodRange[1]) return false;
-        if (dentistFilter !== "ALL" && inv.doctorEn !== dentistFilter) return false;
-        if (
-          serviceFilter !== "ALL" &&
-          !inv.treatmentEn.toLowerCase().includes(serviceFilter.toLowerCase())
-        ) {
-          return false;
-        }
-        return true;
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [branchCode, periodRange, dentistFilter, serviceFilter, salarySyncTick]
-  );
-
   const scopedSalarySummary = useMemo(() => {
-    if (!activeDentistName) return { salaryEgp: 0, invoicedEgp: 0, invoiceCount: 0 };
-    const completedCount = filteredAppointments.filter(
-      (a) => a.status === "COMPLETED" && a.doctorNameEn === activeDentistName
-    ).length;
-    if (completedCount === 0) return { salaryEgp: 0, invoicedEgp: 0, invoiceCount: 0 };
-    if (periodFilter === "this_month" && serviceFilter === "ALL" && mySalaryRow) {
-      return {
-        salaryEgp: mySalaryRow.salaryEgp,
-        invoicedEgp: mySalaryRow.totalInvoicedEgp,
-        invoiceCount: mySalaryRow.invoiceCount,
-      };
+    if (!activeDentistName || !mySalaryRow) {
+      return { salaryEgp: 0, invoicedEgp: 0, invoiceCount: 0 };
     }
-    const counted = scopedInvoices.slice(0, completedCount);
-    const invoicedEgp = counted.reduce((s, inv) => s + inv.totalAmount, 0);
     return {
-      salaryEgp: Math.round(invoicedEgp * 0.4),
-      invoicedEgp,
-      invoiceCount: counted.length,
+      salaryEgp: mySalaryRow.salaryEgp,
+      invoicedEgp: mySalaryRow.totalInvoicedEgp,
+      invoiceCount: mySalaryRow.invoiceCount,
     };
-  }, [activeDentistName, filteredAppointments, periodFilter, serviceFilter, mySalaryRow, scopedInvoices]);
+  }, [activeDentistName, mySalaryRow]);
 
   const branchLabel =
     branchCode === "ALL"
