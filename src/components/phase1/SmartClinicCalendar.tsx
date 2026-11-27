@@ -450,12 +450,33 @@ const FUTURE_DISALLOWED_STATUSES: AppointmentStatus[] = [
   'NO_SHOW',
 ];
 
+const PAST_ALLOWED_STATUSES: AppointmentStatus[] = [
+  'COMPLETED',
+  'CANCELLED',
+  'NO_SHOW',
+];
+
+function pastOutcomeForId(id: string): AppointmentStatus {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  const mod = hash % 7;
+  if (mod === 0) return 'NO_SHOW';
+  if (mod === 1) return 'CANCELLED';
+  return 'COMPLETED';
+}
+
 function normalizeFutureCalendarItem(
   item: CalendarSlotItem,
   todayIso = clinicTodayISO()
 ): CalendarSlotItem {
-  if (calendarItemDate(item) > todayIso && FUTURE_DISALLOWED_STATUSES.includes(item.status)) {
+  const itemDate = calendarItemDate(item);
+  if (itemDate > todayIso && FUTURE_DISALLOWED_STATUSES.includes(item.status)) {
     return { ...item, status: 'CONFIRMED' };
+  }
+  if (itemDate < todayIso && !PAST_ALLOWED_STATUSES.includes(item.status)) {
+    return { ...item, status: pastOutcomeForId(item.id) };
   }
   return item;
 }
@@ -2060,17 +2081,19 @@ export function SmartClinicCalendar({
                 {STATUS_ACTION_ORDER.map((status) => {
                   const active = managingAppt.status === status;
                   const isDanger = status === 'CANCELLED' || status === 'NO_SHOW';
-                  const isFutureBlocked =
-                    calendarItemDate(managingAppt) > clinicTodayISO() &&
-                    FUTURE_DISALLOWED_STATUSES.includes(status);
+                  const apptDate = calendarItemDate(managingAppt);
+                  const todayIso = clinicTodayISO();
+                  const isStatusBlocked =
+                    (apptDate > todayIso && FUTURE_DISALLOWED_STATUSES.includes(status)) ||
+                    (apptDate < todayIso && !PAST_ALLOWED_STATUSES.includes(status));
                   return (
                     <button
                       key={status}
                       type="button"
-                      disabled={isFutureBlocked}
+                      disabled={isStatusBlocked}
                       onClick={() => applyAppointmentStatus(managingAppt, status)}
                       className={`rounded-xl border px-3 py-2 text-xs font-extrabold transition ${
-                        isFutureBlocked
+                        isStatusBlocked
                           ? 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400 opacity-60'
                           : active
                           ? 'border-[#0B2528] bg-[#0B2528] text-white'
