@@ -6,11 +6,13 @@
 
 import {
   clinicDateISO,
+  clinicMonthEndISO,
   clinicMonthKey,
+  clinicMonthStartISO,
   clinicThisMonthISO,
   clinicTodayISO,
 } from './clinic-clock';
-import { expensesForMonth, PAYROLL_STAFF, FinanceBranch } from './clinic-costs';
+import { expensesForMonth, PAYROLL_STAFF, SEED_EXPENSES, FinanceBranch } from './clinic-costs';
 import {
   roundEgp,
   serviceMaterialCost,
@@ -1014,3 +1016,93 @@ export const CURRENT_MONTH_KEY = CURRENT_MONTH;
 export const LEDGER_INVOICE_TOTAL = ALL_INVOICES.length;
 export const LEDGER_SERVICE_KEYS = SERVICE_KEYS;
 export const LEDGER_PAYROLL_STAFF = PAYROLL_STAFF;
+
+export type StatsPeriod = 'today' | 'week' | 'this_month' | 'last_month' | 'all';
+
+export interface PeriodFinanceSummary {
+  invoiced: number;
+  invoiceCount: number;
+  averageInvoice: number;
+  collected: number;
+  costs: number;
+  netProfit: number;
+  marginPercent: number;
+  collectionRatePercent: number;
+}
+
+export function periodFinanceSummary(
+  period: StatsPeriod,
+  branch: FinanceBranch | 'ALL' = 'ALL',
+  doctorNameEn?: string
+): PeriodFinanceSummary {
+  const today = clinicTodayISO();
+  const [from, to]: [string, string] =
+    period === 'today'
+      ? [today, today]
+      : period === 'week'
+      ? [clinicDateISO(-6), today]
+      : period === 'this_month'
+      ? [clinicMonthStartISO(0), today]
+      : period === 'last_month'
+      ? [clinicMonthStartISO(-1), clinicMonthEndISO(-1)]
+      : ['2000-01-01', '2099-12-31'];
+
+  const matchesDoctor = (docEn: string) =>
+    !doctorNameEn || doctorNameEn === 'ALL' || docEn === doctorNameEn;
+
+  let invoiced = 0;
+  let invoiceCount = 0;
+  for (const inv of ALL_INVOICES) {
+    if (!inBranch(branch, inv.branch) || !matchesDoctor(inv.doctorEn)) continue;
+    if (inv.date >= from && inv.date <= to) {
+      invoiced += inv.total;
+      invoiceCount += 1;
+    }
+  }
+
+  let collected = 0;
+  for (const pay of ALL_PAYMENTS) {
+    const inv = invoiceOf(pay);
+    if (!inv || !inBranch(branch, inv.branch) || !matchesDoctor(inv.doctorEn)) continue;
+    if (pay.date >= from && pay.date <= to) {
+      collected += pay.amount;
+    }
+  }
+
+  let costs = 0;
+  if (period === 'all') {
+    costs = SEED_EXPENSES.filter((e) => inBranch(branch, e.branchCode)).reduce(
+      (s, e) => s + e.amountEgp,
+      0
+    );
+  } else if (period === 'last_month') {
+    costs = expensesForMonth(clinicMonthKey(-1))
+      .filter((e) => inBranch(branch, e.branchCode))
+      .reduce((s, e) => s + e.amountEgp, 0);
+  } else {
+    const monthTotalCosts = expensesForMonth(clinicMonthKey(0))
+      .filter((e) => inBranch(branch, e.branchCode))
+      .reduce((s, e) => s + e.amountEgp, 0);
+    const daysInMonth = Number(clinicMonthEndISO(0).slice(8, 10)) || 30;
+    const elapsedDays = Number(today.slice(8, 10)) || 1;
+    const ratio =
+      period === 'today'
+        ? 1 / daysInMonth
+        : period === 'week'
+        ? Math.min(7, elapsedDays) / daysInMonth
+        : elapsedDays / daysInMonth;
+    costs = roundEgp(monthTotalCosts * ratio);
+  }
+
+  const netProfit = collected - costs;
+  return {
+    invoiced,
+    invoiceCount,
+    averageInvoice: invoiceCount ? roundEgp(invoiced / invoiceCount) : 0,
+    collected,
+    costs,
+    netProfit,
+    marginPercent: collected ? Math.round((netProfit / collected) * 100) : 0,
+    collectionRatePercent: invoiced ? Math.round((collected / invoiced) * 100) : 0,
+  };
+}

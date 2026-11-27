@@ -32,6 +32,7 @@ import {
   financeKpis,
   monthPerformance,
   paymentsBetween,
+  periodFinanceSummary,
   serviceProfitRows,
 } from "@/lib/clinic-finance";
 import type { FinanceBranch } from "@/lib/clinic-costs";
@@ -215,6 +216,15 @@ export default function StatisticsAndReportsPhaseThree({
         ] ?? branchCode;
 
   const kpis = financeKpis(branchCode);
+  const scopedFinance = useMemo(
+    () =>
+      periodFinanceSummary(
+        periodFilter,
+        branchCode,
+        dentistFilter !== "ALL" ? dentistFilter : undefined
+      ),
+    [periodFilter, branchCode, dentistFilter]
+  );
   const branchMetrics = getMinyaBranchMetrics(branchCode);
   const patientStats = branchPatientStats(branchCode);
   const currentMonthPerf = monthPerformance(0, branchCode);
@@ -377,10 +387,10 @@ export default function StatisticsAndReportsPhaseThree({
       valueDisplay:
         builderData === "revenue"
           ? `EGP ${(builderPeriod === "today"
-              ? kpis.todayCollected
+              ? periodFinanceSummary("today", branchCode, dentistFilter !== "ALL" ? dentistFilter : undefined).collected
               : builderPeriod === "week"
-              ? weekCollected
-              : kpis.monthCollected
+              ? periodFinanceSummary("week", branchCode, dentistFilter !== "ALL" ? dentistFilter : undefined).collected
+              : periodFinanceSummary("this_month", branchCode, dentistFilter !== "ALL" ? dentistFilter : undefined).collected
             ).toLocaleString()}`
           : builderData === "appointments"
           ? `${builderPeriod === "today" ? todayScopedAppts : completedScopedAppts} visits`
@@ -538,13 +548,13 @@ export default function StatisticsAndReportsPhaseThree({
                   </span>
                 </div>
                 <div className="mt-1 flex items-baseline gap-1.5 tabular-nums">
-                  <span className="text-2xl font-black text-slate-900">{kpis.monthInvoiced.toLocaleString()}</span>
+                  <span className="text-2xl font-black text-slate-900">{scopedFinance.invoiced.toLocaleString()}</span>
                   <span className="text-xs font-bold text-slate-400">{isAr ? "ج.م" : "EGP"}</span>
                 </div>
                 <p className="text-[11px] text-slate-400">
                   {isAr
-                    ? `${kpis.monthInvoiceCount} فاتورة · متوسط ${kpis.monthAverageInvoice.toLocaleString()} ج.م`
-                    : `${kpis.monthInvoiceCount} invoices · avg EGP ${kpis.monthAverageInvoice.toLocaleString()}`}
+                    ? `${scopedFinance.invoiceCount} فاتورة · متوسط ${scopedFinance.averageInvoice.toLocaleString()} ج.م`
+                    : `${scopedFinance.invoiceCount} invoices · avg EGP ${scopedFinance.averageInvoice.toLocaleString()}`}
                 </p>
                 <svg viewBox="0 0 320 48" className="mt-3 h-11 w-full">
                   <path
@@ -576,19 +586,19 @@ export default function StatisticsAndReportsPhaseThree({
                   </span>
                 </div>
                 <div className="my-2 flex items-baseline gap-1.5 tabular-nums">
-                  <span className="text-2xl font-black text-slate-900">{kpis.monthCollected.toLocaleString()}</span>
+                  <span className="text-2xl font-black text-slate-900">{scopedFinance.collected.toLocaleString()}</span>
                   <span className="text-xs font-bold text-slate-400">{isAr ? "ج.م" : "EGP"}</span>
                 </div>
                 <div>
                   <div className="text-[11px] text-slate-400">
                     {isAr
-                      ? `تحصيل فواتير الفترة ${kpis.collectionRatePercent}%`
-                      : `${kpis.collectionRatePercent}% period invoice collection`}
+                      ? `تحصيل فواتير الفترة ${scopedFinance.collectionRatePercent}%`
+                      : `${scopedFinance.collectionRatePercent}% period invoice collection`}
                   </div>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                     <div
                       className="h-full rounded-full bg-emerald-600"
-                      style={{ width: `${kpis.collectionRatePercent}%` }}
+                      style={{ width: `${Math.min(100, scopedFinance.collectionRatePercent)}%` }}
                     />
                   </div>
                 </div>
@@ -610,13 +620,13 @@ export default function StatisticsAndReportsPhaseThree({
                   </span>
                 </div>
                 <div className="my-2 flex items-baseline gap-1.5 tabular-nums">
-                  <span className="text-2xl font-black text-slate-900">{kpis.netProfit.toLocaleString()}</span>
+                  <span className="text-2xl font-black text-slate-900">{scopedFinance.netProfit.toLocaleString()}</span>
                   <span className="text-xs font-bold text-slate-400">{isAr ? "ج.م" : "EGP"}</span>
                 </div>
                 <div className="text-[11px] text-slate-400">
                   {isAr
-                    ? `هامش ${kpis.marginPercent}% · بعد كل التكاليف`
-                    : `${kpis.marginPercent}% margin · after all costs`}
+                    ? `هامش ${scopedFinance.marginPercent}% · بعد كل التكاليف`
+                    : `${scopedFinance.marginPercent}% margin · after all costs`}
                 </div>
               </div>
             </>
